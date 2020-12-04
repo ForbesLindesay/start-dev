@@ -88,3 +88,6 @@ __generated__/
 .idea
 
 buildinfo.json
+
+snowpack-cache
+app/tailwind.css.br
