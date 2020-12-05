@@ -6,7 +6,8 @@
     "composite": true,
     "rootDir": "src",
     "tsBuildInfoFile": "lib/.tsbuildinfo",
-    "lib": ["DOM", "ES2020"]
+    "lib": ["DOM", "ES2020"],
+    "jsx": "react"
   },
   "include": ["src"]
 }

@@ -1,5 +1,5 @@
 import {resolve, join} from 'path';
-import {readdirSync, readFileSync, createReadStream} from 'fs';
+import {readFileSync, createReadStream} from 'fs';
 import {createHash, randomBytes} from 'crypto';
 import {createBrotliDecompress} from 'zlib';
 import {startDevServer, createConfiguration} from 'snowpack';
@@ -7,7 +7,7 @@ import handleRequest from './handleRequest';
 import getRpcClient from './rpc-client';
 
 const APP_DIR = resolve(`${__dirname}/../app`);
-const CACHE_DIR = resolve(`${__dirname}/../snowpack-cache`);
+// const CACHE_DIR = resolve(`${__dirname}/../snowpack-cache`);
 export default async function startServer(cwd: string, entry: string) {
   const CSRF_TOKEN = randomBytes(128).toString('base64');
   const TAILWIND_ETAG = createHash('sha1')
@@ -148,17 +148,17 @@ export default async function startServer(cwd: string, entry: string) {
   }
 
   const alias: Record<string, string> = {};
-  try {
-    for (const filename of readdirSync(resolve(CACHE_DIR))) {
-      if (filename.endsWith('.js')) {
-        alias[filename.replace(/\.js$/, '')] = join(CACHE_DIR, filename);
-      }
-    }
-  } catch (ex) {
-    if (ex.code !== 'ENOENT') {
-      throw ex;
-    }
-  }
+  // try {
+  //   for (const filename of readdirSync(resolve(CACHE_DIR))) {
+  //     if (filename.endsWith('.js')) {
+  //       alias[filename.replace(/\.js$/, '')] = join(CACHE_DIR, filename);
+  //     }
+  //   }
+  // } catch (ex) {
+  //   if (ex.code !== 'ENOENT') {
+  //     throw ex;
+  //   }
+  // }
   alias['@graphical-scripts/app'] = join(cwd, entry);
 
   await startDevServer({
@@ -176,11 +176,11 @@ export default async function startServer(cwd: string, entry: string) {
       knownEntrypoints: [],
       webDependencies: {},
       mount: {
-        [CACHE_DIR]: {
-          url: '/__prebuilt__/',
-          static: false,
-          resolve: true,
-        },
+        // [CACHE_DIR]: {
+        //   url: '/__prebuilt__/',
+        //   static: false,
+        //   resolve: true,
+        // },
         [APP_DIR]: {
           url: '/',
           static: false,

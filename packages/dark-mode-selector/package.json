@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/state",
+  "name": "@graphical-scripts/dark-mode-selector",
   "version": "0.0.0",
   "description": "npm-package-template",
   "main": "lib/index.js",
