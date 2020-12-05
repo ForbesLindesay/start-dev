@@ -24,7 +24,8 @@
     "ci:test": "jest --silent --maxWorkers=2"
   },
   "dependencies": {
-    "snowpack": "^3.0.0-rc.1"
+    "snowpack": "^3.0.0-rc.1",
+    "sucrase": "^3.16.0"
   },
   "devDependencies": {
     "@forbeslindesay/tsconfig": "^2.0.0",

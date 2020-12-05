@@ -4,6 +4,7 @@ import {createHash, randomBytes} from 'crypto';
 import {createBrotliDecompress} from 'zlib';
 import {startDevServer, createConfiguration} from 'snowpack';
 import handleRequest from './handleRequest';
+import getRpcClient from './rpc-client';
 
 const CSRF_TOKEN = randomBytes(128).toString('base64');
 const TAILWIND_ETAG = createHash('sha1')
@@ -13,7 +14,12 @@ const TAILWIND_ETAG = createHash('sha1')
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 const config = createConfiguration({
   // plugins: [require.resolve('./br-plugin')],
-  plugins: [require.resolve('./rpc-server-plugin')],
+  plugins: [
+    [
+      require.resolve('./rpc-server-plugin'),
+      {directory: resolve(`${__dirname}/../app`)},
+    ],
+  ],
   experiments: {
     routes: [
       {
@@ -22,6 +28,32 @@ const config = createConfiguration({
         dest: (_req, res) => {
           res.setHeader('Content-Type', 'text/javascript');
           res.end(`while(true);${CSRF_TOKEN}`);
+        },
+      },
+      {
+        src: '/_api/api-client.js',
+        match: 'all',
+        dest: async (_req, res) => {
+          res.setHeader('Content-Type', 'text/javascript');
+          createReadStream(`${__dirname}/../app/api-client.js`).pipe(res);
+        },
+      },
+      {
+        src: '/_api/.+\\.api\\.js',
+        match: 'all',
+        dest: async (req, res) => {
+          try {
+            res.setHeader('Content-Type', 'text/javascript');
+            const src = await getRpcClient(req.url!.substr('/_api/'.length));
+            res.end(src);
+          } catch (ex) {
+            console.error(ex.stack || ex.message || ex);
+            res.end(
+              `console.error(${JSON.stringify(
+                `${ex.stack || ex.message || ex}`,
+              )});`,
+            );
+          }
         },
       },
       {
@@ -140,6 +172,7 @@ startDevServer({
       '**/node_modules/**/*',
       '**/web_modules/**/*',
       '**/.types/**/*',
+      `**/*.api.*`,
       `${resolve(`${__dirname}/../__snowpack__`)}/**/*`,
     ],
 

@@ -1,16 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import * as e from './example.api';
+import {readFile} from './example.api';
 
-console.warn(JSON.stringify(e));
-
-function add(a: number, b: number) {
-  return a + b;
-}
-ReactDOM.render(
-  <div className="bg-blue-200">"HELLO {add(40, 2)}"</div>,
-  document.getElementById('root'),
-);
+ReactDOM.render(<App />, document.getElementById('root'));
 
 const CSRF_TOKEN = fetch('/_csrf')
   .then(async (r) => {
@@ -43,3 +35,17 @@ async function callBackend(request: any): Promise<any> {
 callBackend({type: 'frontend-loaded'}).catch((ex) => {
   console.error(ex);
 });
+function App() {
+  const [pkg, setPkg] = React.useState(null);
+  React.useEffect(() => {
+    readFile('package.json').then(
+      (v) => setPkg(v),
+      (e) => setPkg(e.stack || e.message),
+    );
+  }, []);
+  return (
+    <pre>
+      <code>{pkg}</code>
+    </pre>
+  );
+}

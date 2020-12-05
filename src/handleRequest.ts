@@ -1,8 +1,15 @@
+import {getModuleAPI} from './rpc-client';
+
 if (process.env.POPULATE_SNOWPACK_CACHE === 'true') {
   require('rimraf').sync(`${__dirname}/../snowpack-cache`);
 }
 
 export default async function handleRequest(request: any): Promise<any> {
+  if (request.type === 'method-call') {
+    return await getModuleAPI(request.moduleID)[request.methodName](
+      ...request.args,
+    );
+  }
   if (
     request.type === 'frontend-loaded' &&
     process.env.POPULATE_SNOWPACK_CACHE === 'true'
