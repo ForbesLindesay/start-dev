@@ -2,13 +2,16 @@ let csrfTokenCache;
 
 export async function getCsrfToken() {
   try {
-    csrfTokenCache = csrfTokenCache || fetch('/_csrf');
-    const response = await csrfTokenCache;
-    if (!response.ok) {
-      throw new Error(response.statusText + ': ' + (await response.text()));
-    }
-    const responseText = await response.text();
-    return responseText.substr('while(true);'.length);
+    csrfTokenCache =
+      csrfTokenCache ||
+      fetch('/_csrf').then(async (response) => {
+        if (!response.ok) {
+          throw new Error(response.statusText + ': ' + (await response.text()));
+        }
+        const responseText = await response.text();
+        return responseText.substr('while(true);'.length);
+      });
+    return await csrfTokenCache;
   } catch (ex) {
     csrfTokenCache = undefined;
     throw ex;
@@ -45,5 +48,51 @@ export function asyncMethod(moduleID, methodName) {
       methodName,
       args,
     });
+  };
+}
+
+export function observableState(
+  moduleID,
+  exportName,
+  initialValue,
+  initialEtag,
+) {
+  const subscribers = new Set();
+  let value = initialValue;
+  let etag = initialEtag;
+  function poll() {
+    callmethod({
+      type: 'long-poll',
+      moduleID,
+      exportName,
+      timeout: 30_000,
+      etag,
+    })
+      .then((result) => {
+        if (result.etag !== etag) {
+          etag = result.etag;
+          value = result.value;
+          for (const fn of subscribers) {
+            fn(value);
+          }
+        }
+      })
+      .then(
+        () => {
+          poll();
+        },
+        (err) => {
+          console.error(err);
+          console.error('Retrying in ~5 seconds');
+          setTimeout(() => poll(), 4500 + Math.floor(Math.random() * 1000));
+        },
+      );
+  }
+  poll();
+  return {
+    getValue: () => value,
+    subscribe: (fn) => {
+      subscribers.add(fn);
+    },
   };
 }

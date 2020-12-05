@@ -1,0 +1,18 @@
+{
+  "name": "@graphical-scripts/state",
+  "version": "0.0.0",
+  "description": "npm-package-template",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}

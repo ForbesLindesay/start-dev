@@ -7,6 +7,5 @@
     "tsBuildInfoFile": "lib/.tsbuildinfo",
     "lib": ["DOM", "ES2020"]
   },
-  "files": [],
-  "references": [{"path": "./packages/core"}, {"path": "./packages/state"}]
+  "include": ["src"]
 }

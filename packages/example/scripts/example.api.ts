@@ -1,7 +1,12 @@
 import {promises} from 'fs';
+import {createStateAtom} from '@graphical-scripts/state';
 
 export async function readFile(filename: string) {
   return promises.readFile(filename, 'utf8');
 }
+
+const [observable, setState] = createStateAtom({value: 42});
+setInterval(() => setState(({value}) => ({value: value + 1})), 60_000);
+export {observable};
 
 // TODO: add an observable API examle

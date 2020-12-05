@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@graphical-scripts/core": "0.0.0"
+    "@graphical-scripts/core": "0.0.0",
+    "@graphical-scripts/state": "0.0.0",
+    "@types/react": "^17.0.0",
+    "react": "^17.0.1"
   },
   "scripts": {
     "start": "graphical scripts index.tsx"

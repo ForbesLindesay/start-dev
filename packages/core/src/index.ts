@@ -51,11 +51,8 @@ export default async function startServer(cwd: string, entry: string) {
               res.end(src);
             } catch (ex) {
               console.error(ex.stack || ex.message || ex);
-              res.end(
-                `console.error(${JSON.stringify(
-                  `${ex.stack || ex.message || ex}`,
-                )});`,
-              );
+              res.statusCode = 500;
+              res.end(ex.stack || ex.message || ex);
             }
           },
         },
