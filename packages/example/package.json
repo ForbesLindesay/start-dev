@@ -1,0 +1,11 @@
+{
+  "name": "@graphical-scripts/example",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@graphical-scripts/core": "0.0.0"
+  },
+  "scripts": {
+    "start": "graphical scripts index.tsx"
+  }
+}

@@ -1,15 +1,12 @@
-import {resolve} from 'path';
+import {join} from 'path';
 import {existsSync} from 'fs';
 
 // require('esm');
 // require('esbuild-register');
 const modules = new Map<string, any>();
-export default async function getRpcClient(filename: string) {
+export default async function getRpcClient(appDir: string, filename: string) {
   require('sucrase/register');
-  const moduleID = resolve(
-    `${__dirname}/../app/`,
-    filename.replace(/\.js$/, ''),
-  );
+  const moduleID = join(appDir, filename.replace(/\.js$/, ''));
   const sourceExtension =
     ['.mjs', '.ts', '.tsx', '.js', '.jsx'].find((ext) =>
       existsSync(`${moduleID}${ext}`),
@@ -28,10 +25,6 @@ export default async function getRpcClient(filename: string) {
     }
   }
   return output.join('\n');
-  // console.log('pkg=', pkg);
-  // return `console.log('loading rpc module', ${JSON.stringify(
-  //   filename,
-  // )})\nexport const readFile = async (...args) => args`;
 }
 
 export function getModuleAPI(moduleID: string): any {

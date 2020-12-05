@@ -1,0 +1,32 @@
+{
+  "name": "@graphical-scripts/core",
+  "version": "0.0.0",
+  "description": "npm-package-template",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "bin": {
+    "graphical": "lib/cli.js"
+  },
+  "files": [
+    "app/",
+    "lib/",
+    "snowpack-cache/"
+  ],
+  "scripts": {
+    "build": "yarn build:ts && yarn build:css && yarn build:cache",
+    "build:ts": "tsc",
+    "build:css": "NODE_ENV=production tailwindcss-cli build | postcss | brotli --stdin > app/tailwind.css.br",
+    "build:cache": "POPULATE_SNOWPACK_CACHE=true node lib"
+  },
+  "dependencies": {
+    "snowpack": "^3.0.0-rc.1",
+    "sucrase": "^3.16.0"
+  },
+  "devDependencies": {
+    "copy-dir": "^1.3.0",
+    "rimraf": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}
