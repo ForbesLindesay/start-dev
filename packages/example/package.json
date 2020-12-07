@@ -6,6 +6,7 @@
     "@graphical-scripts/core": "0.0.0",
     "@graphical-scripts/state": "0.0.0",
     "@types/react": "^17.0.0",
+    "beamwind": "^2.0.2",
     "react": "^17.0.1"
   },
   "scripts": {

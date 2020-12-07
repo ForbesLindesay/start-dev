@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/dark-mode-selector",
+  "name": "@graphical-scripts/observable-process",
   "version": "0.0.0",
   "description": "npm-package-template",
   "main": "lib/index.js",
@@ -11,15 +11,10 @@
     "build": "tsc"
   },
   "dependencies": {
-    "beamwind": "^2.0.2"
+    "@graphical-scripts/state": "^0.0.0"
   },
-  "devDependencies": {
-    "@types/react": "^17.0.0",
-    "react": "^17.0.1"
-  },
-  "peerDependencies": {
-    "react": "*"
-  },
+  "devDependencies": {},
+  "peerDependencies": {},
   "engines": {
     "node": ">=12.0.0"
   }

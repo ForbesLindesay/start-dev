@@ -257,6 +257,23 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@beamwind/core@^2.0.2":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@beamwind/core/-/core-2.3.0.tgz#ad55f13d1f76f4bd4c24e4ea731a821615d10818"
+  integrity sha512-unXFgXRhPYVRPYS0ew675MPH10v9C5rQmY37r6p5FQ6SbamFaW3CNO/mYoLuRV/gBvK96l9OrTDr3EExnQfHMA==
+  dependencies:
+    tiny-css-prefixer "^1.1.4"
+
+"@beamwind/preflight@^2.0.0":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@beamwind/preflight/-/preflight-2.0.2.tgz#77e1de77650efbbbb929ffcdde6c1982c71ab9e4"
+  integrity sha512-pGuIpblgufW5qIWp/75LcKt8pUes9WeR5cOPJdnDS8mxn9C4oDJ0VPACOYsuXa8B7n0qIFjnY8Y3LbM6LkVyPw==
+
+"@beamwind/preset-tailwind@^2.0.0":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@beamwind/preset-tailwind/-/preset-tailwind-2.0.2.tgz#7c6a51597733829e944b71344b20bca5a09e4eb4"
+  integrity sha512-ceEZqzDHnrAfSSeXXPDoVT9N0WcY16I4Sr0yEy3c8yEM/oSkDXA/LoS0xnYEuht+r1ie5o+wy2NR2YnUcqMzpw==
+
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@cnakazawa/watch/-/watch-1.0.4.tgz#f864ae85004d0fcab6f50be9141c4da368d1656a"
@@ -1101,6 +1118,15 @@ bcrypt-pbkdf@^1.0.0:
   integrity sha1-pDAdOJtqQ/m2f/PKEaP2Y342Dp4=
   dependencies:
     tweetnacl "^0.14.3"
+
+beamwind@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/beamwind/-/beamwind-2.0.2.tgz#b92a42caac75f622535028d1bf0c83ab9ccf2fc8"
+  integrity sha512-XyXjZDz4krw1czYr6UA9igxVEg8T6WmL631fTQ/aXKUrcnRQe8QZ8Lhr3OJCilIKzAAYxEhtPe9R84V3+MXTEw==
+  dependencies:
+    "@beamwind/core" "^2.0.2"
+    "@beamwind/preflight" "^2.0.0"
+    "@beamwind/preset-tailwind" "^2.0.0"
 
 big.js@^5.2.2:
   version "5.2.2"
@@ -6145,6 +6171,11 @@ timsort@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/timsort/-/timsort-0.3.0.tgz#405411a8e7e6339fe64db9a234de11dc31e02bd4"
   integrity sha1-QFQRqOfmM5/mTbmiNN4R3DHgK9Q=
+
+tiny-css-prefixer@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/tiny-css-prefixer/-/tiny-css-prefixer-1.1.4.tgz#b96a0aa6b312227d996e9c303645e3ae2f194086"
+  integrity sha512-QLnDGLUmMkNlSuWogBaSu92uQnvWhcQwUc+MG8L4YgBkjSmBkAz29pTq+8Rh3YWR1TwPrjuZDKWzO7v4PXkipQ==
 
 tmpl@1.0.x:
   version "1.0.4"

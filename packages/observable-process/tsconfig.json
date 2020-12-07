@@ -1,0 +1,12 @@
+{
+  "extends": "@forbeslindesay/tsconfig",
+  "compilerOptions": {
+    "outDir": "lib",
+    "incremental": true,
+    "composite": true,
+    "rootDir": "src",
+    "tsBuildInfoFile": "lib/.tsbuildinfo",
+    "lib": ["DOM", "ES2020"]
+  },
+  "include": ["src"]
+}

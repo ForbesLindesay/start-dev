@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@graphical-scripts/dark-mode-selector": "^0.0.0",
+    "beamwind": "^2.0.2",
     "snowpack": "^3.0.0-rc.1",
     "sucrase": "^3.16.0"
   },

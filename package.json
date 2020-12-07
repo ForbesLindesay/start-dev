@@ -27,7 +27,7 @@
     "example": "yarn workspace @graphical-scripts/example",
     "build": "yarn build:ts && yarn core build:css",
     "build:ts": "tsc --build",
-    "postbuild:ts": "rimraf packages/*/lib/**/__tests__",
+    "postbuild:ts": "rimraf packages/*/lib/**/__tests__ && rimraf **/node_modules/.cache/snowpack",
     "lint": "tslint './src/**/*.{ts,tsx}' -t verbose -p .",
     "prettier:write": "prettier --ignore-path .gitignore --write './**/*.{md,json,yaml,js,jsx,ts,tsx}'",
     "prettier:check": "prettier --ignore-path .gitignore --list-different './**/*.{md,json,yaml,js,jsx,ts,tsx}'",
