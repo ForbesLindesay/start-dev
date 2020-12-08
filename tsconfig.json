@@ -9,7 +9,9 @@
   },
   "files": [],
   "references": [
+    {"path": "./packages/bundle"},
     {"path": "./packages/core"},
+    {"path": "./packages/core-2"},
     {"path": "./packages/dark-mode-selector"},
     {"path": "./packages/state"}
   ]

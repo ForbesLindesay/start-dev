@@ -91,3 +91,6 @@ buildinfo.json
 
 snowpack-cache
 app/tailwind.css.br
+
+bundle-cache
+package-entry-points.json

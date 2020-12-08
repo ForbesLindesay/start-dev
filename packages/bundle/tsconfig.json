@@ -5,10 +5,9 @@
     "incremental": true,
     "composite": true,
     "rootDir": "src",
-    "module": "ES2020",
     "tsBuildInfoFile": "lib/.tsbuildinfo",
-    "lib": ["DOM", "ES2020"],
-    "jsx": "react"
+    "lib": ["DOM", "ES2020"]
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [{"path": "../dark-mode-selector"}]
 }

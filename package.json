@@ -23,8 +23,9 @@
     "typescript": "^3.8.3"
   },
   "scripts": {
-    "core": "yarn workspace @graphical-scripts/core",
+    "core": "yarn workspace @graphical-scripts/core-2",
     "example": "yarn workspace @graphical-scripts/example",
+    "bundle": "yarn workspace @graphical-scripts/bundle",
     "build": "yarn build:ts && yarn core build:css",
     "build:ts": "tsc --build",
     "postbuild:ts": "rimraf packages/*/lib/**/__tests__ && rimraf **/node_modules/.cache/snowpack",
