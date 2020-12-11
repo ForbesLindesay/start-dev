@@ -52,7 +52,7 @@
     },
     "testEnvironment": "node",
     "testMatch": [
-      "<rootDir>/src/**/__tests__/**/*.test.ts?(x)"
+      "<rootDir>/packages/*/src/**/__tests__/**/*.test.ts?(x)"
     ]
   },
   "husky": {

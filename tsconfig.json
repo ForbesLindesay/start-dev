@@ -13,6 +13,7 @@
     {"path": "./packages/core"},
     {"path": "./packages/core-2"},
     {"path": "./packages/dark-mode-selector"},
+    {"path": "./packages/find-package-locations"},
     {"path": "./packages/state"}
   ]
 }
