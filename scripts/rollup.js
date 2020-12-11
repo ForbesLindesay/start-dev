@@ -47,35 +47,54 @@ async function run() {
       .substr('./dist/'.length)
       .replace(/\.cjs/g, '')}`;
   });
-  const packageBundle = await rollup({
-    input,
-    external: [
-      ...Object.keys(pkg.dependencies || {}),
-      ...Object.keys(pkg.peerDependencies || {}),
-      'react',
-    ],
-    plugins: [
-      prettier({
-        tabWidth: 2,
-        singleQuote: true,
-        parser: 'babel',
-      }),
-      pluginNodeResolve({
-        mainFields: ['module', 'main'],
-        extensions: ['.mjs', '.cjs', '.js', '.json'], // Default: [ '.mjs', '.js', '.json', '.node' ]
-        // whether to prefer built-in modules (e.g. `fs`, `path`) or local ones with the same names
-        preferBuiltins: true,
-        dedupe: [],
-        exportConditions: ['module', 'require', 'default', 'node'],
-      }),
-      pluginCommonJS({
-        extensions: ['.js', '.cjs'],
-        // esmExternals: externalPackageEsm,
-        requireReturnsDefault: 'auto',
-      }),
-      rollupPluginCatchUnresolved(),
-    ],
-  });
+  let packageBundle;
+  try {
+    packageBundle = await rollup({
+      input,
+      external: [
+        ...Object.keys(pkg.dependencies || {}),
+        ...Object.keys(pkg.peerDependencies || {}),
+        'react',
+      ],
+      plugins: [
+        prettier({
+          tabWidth: 2,
+          singleQuote: true,
+          parser: 'babel',
+        }),
+        pluginNodeResolve({
+          mainFields: ['module', 'main'],
+          extensions: ['.mjs', '.cjs', '.js', '.json'], // Default: [ '.mjs', '.js', '.json', '.node' ]
+          // whether to prefer built-in modules (e.g. `fs`, `path`) or local ones with the same names
+          preferBuiltins: true,
+          dedupe: [],
+          exportConditions: ['module', 'require', 'default', 'node'],
+        }),
+        pluginCommonJS({
+          extensions: ['.js', '.cjs'],
+          // esmExternals: externalPackageEsm,
+          requireReturnsDefault: 'auto',
+        }),
+        rollupPluginCatchUnresolved(),
+      ],
+      onwarn(warning) {
+        const {loc, message} = warning;
+        const logMessage = loc
+          ? `${loc.file}:${loc.line}:${loc.column} ${message}`
+          : message;
+        console.error(logMessage);
+        process.exitCode = 1;
+      },
+    });
+  } catch (ex) {
+    if (ex.code !== 'PARSE_ERROR') {
+      throw ex;
+    }
+    console.error(ex.message);
+    console.error(`${ex.loc.file} ${ex.loc.line}:${ex.loc.column}`);
+    console.error(ex.frame);
+    process.exit(1);
+  }
   await packageBundle.write({
     dir: 'dist/',
     entryFileNames: '[name].cjs',

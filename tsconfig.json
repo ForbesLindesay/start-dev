@@ -16,6 +16,8 @@
     {"path": "./packages/get-package-exports"},
     {"path": "./packages/observable-process"},
     {"path": "./packages/rewrite-imports"},
-    {"path": "./packages/state"}
+    {"path": "./packages/rollup-plugin-native-fetch"},
+    {"path": "./packages/rollup-plugin-strip-source-mapping"},
+    {"path": "./packages/state"},
   ]
 }

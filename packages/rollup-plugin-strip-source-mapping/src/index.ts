@@ -5,9 +5,9 @@ import {Plugin} from 'rollup';
  *
  * Remove any lingering source map comments
  */
-export function rollupPluginStripSourceMapping(): Plugin {
+export default function rollupPluginStripSourceMapping(): Plugin {
   return {
-    name: 'snowpack:rollup-plugin-strip-source-mapping',
+    name: 'rollup-plugin-strip-source-mapping',
     transform: (code) => ({
       code: code
         // [a-zA-Z0-9-_\*?\.\/\&=+%]: valid URL characters (for sourcemaps)

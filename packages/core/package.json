@@ -20,8 +20,11 @@
   "dependencies": {
     "@graphical-scripts/bundle": "^0.0.0",
     "@graphical-scripts/dark-mode-selector": "^0.0.0",
+    "@graphical-scripts/find-package-locations": "^0.0.0",
+    "@graphical-scripts/get-package-exports": "^0.0.0",
     "@graphical-scripts/rewrite-imports": "^0.0.0",
     "beamwind": "^2.0.2",
+    "chalk": "^4.1.0",
     "character-parser": "^3.1.0",
     "mime": "^2.4.6",
     "resolve": "^1.19.0",

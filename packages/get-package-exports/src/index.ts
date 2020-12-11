@@ -1,5 +1,6 @@
 import {readdir, readFile, realpath} from 'fs';
 import {join} from 'path';
+const resolveNode = require('resolve');
 
 // we don't want to overwhelm the file system, and some unix systems
 // limit the number of open file handles, so we queue requests beyond
@@ -70,6 +71,28 @@ export default async function getPackageExports(
     }
 
     function onExport(e: NormalizedExport) {
+      task((cb) => {
+        resolveNode(
+          e.resolvedPath,
+          {
+            basedir: packageDirectory,
+          },
+          (err: any, result: string) => {
+            if (!err && result) {
+              realpath(result, (err, result) => {
+                if (!err) {
+                  e.resolvedPath = result;
+                }
+                normalizedExports.push(e);
+                cb();
+              });
+            } else {
+              normalizedExports.push(e);
+              cb();
+            }
+          },
+        );
+      });
       normalizedExports.push(e);
       // TODO: handle widcards??
       // task((cb) => {
@@ -129,11 +152,15 @@ export default async function getPackageExports(
     function onExports(
       resolvedPackageDirectory: string,
       parts: string[],
-      e: {[key: string]: string | {[key: string]: string}},
+      exports: {[key: string]: string | {[key: string]: string}},
       cb: (err?: Error) => void,
     ) {
       const pkgFileName = join(resolvedPackageDirectory, 'package.json');
-      for (const [exportName, exportPath] of Object.entries(e)) {
+      for (const [exportName, exportPath] of Object.entries(exports)) {
+        if (exportName === './') {
+          // you need to use `.` for the default export, and we don't support using "./": "./" to expose everything yet
+          continue;
+        }
         if (!exportName.startsWith('./') && exportName !== '.') {
           cb(
             new Error(
@@ -145,7 +172,7 @@ export default async function getPackageExports(
         let exportPathString = exportPath;
         if (typeof exportPathString !== 'string') {
           const matchingCondition = Object.entries(
-            exports.exportPathString,
+            exportPathString,
           ).find(([key]) => options.allowedExportKeys.includes(key));
           if (matchingCondition === undefined) {
             cb(
@@ -215,15 +242,16 @@ export default async function getPackageExports(
             cb();
             return;
           }
-          const main = pkg.main;
+          const exports = options.overrideExports ?? pkg.exports;
+          const module = pkg.module;
           const browser = pkg.browser;
-          const exports = pkg.exports;
+          const main = pkg.main;
           realpath(dir, (err, resolvedPackageDirectory) => {
             if (err) {
               cb(err);
               return;
             }
-            if (options.overrideExports || exports) {
+            if (exports) {
               if (typeof exports !== 'object' || exports === null) {
                 cb(
                   new Error(
@@ -232,19 +260,23 @@ export default async function getPackageExports(
                 );
                 return;
               }
-              const e: {
-                [key: string]: string | {[key: string]: string};
-              } = options.overrideExports || (exports as any);
-              onExports(resolvedPackageDirectory, parts, e, cb);
-            } else if (browser) {
-              if (typeof browser !== 'string') {
+              onExports(resolvedPackageDirectory, parts, exports as any, cb);
+            } else if (module) {
+              if (typeof module !== 'string') {
                 cb(
                   new Error(
-                    `${pkgFileName} has a "browser" property that is not a string`,
+                    `${pkgFileName} has a "module" property that is not a string`,
                   ),
                 );
                 return;
               }
+              onExports(
+                resolvedPackageDirectory,
+                parts,
+                {'.': module, './package.json': './package.json'},
+                cb,
+              );
+            } else if (browser && typeof browser === 'string') {
               onExports(
                 resolvedPackageDirectory,
                 parts,
@@ -274,7 +306,6 @@ export default async function getPackageExports(
                 cb,
               );
             }
-            cb();
           });
         });
       });

@@ -1,15 +1,21 @@
 import {resolve, relative, dirname, join} from 'path';
-import {promises, readFileSync, writeFileSync} from 'fs';
+import {promises} from 'fs';
 import {randomBytes} from 'crypto';
 // import {createBrotliDecompress} from 'zlib';
 import {createServer, IncomingMessage, ServerResponse} from 'http';
 import {transform} from 'sucrase';
 import {getType} from 'mime';
-import getBundler from '@graphical-scripts/bundle';
+import bundleDependency from '@graphical-scripts/bundle';
 import rewriteImports from '@graphical-scripts/rewrite-imports';
 import getRpcClient from './rpc-client';
 import handleRequest from './handleRequest';
-const resolveNode = require('resolve');
+import findPackageLocations, {
+  PackageLocation,
+} from '@graphical-scripts/find-package-locations';
+import getPackageExports, {
+  NormalizedExport,
+} from '@graphical-scripts/get-package-exports';
+import chalk from 'chalk';
 
 // we intentionally wait until after we've loaded all the internal modules before registering sucrase to
 // handle any server side modules
@@ -18,63 +24,139 @@ require('sucrase/register');
 const CSRF_TOKEN = randomBytes(128).toString('base64');
 
 const builtinDependencies: {[key: string]: string} = {
-  // '@graphical-scripts/dark-mode-selector':
-  //   '/@graphical-scripts/dark-mode-selector',
-  // '@graphical-scripts/state': '/@graphical-scripts/state',
   '@graphical-scripts/app': '/app/index.js',
 };
-// const standardDependencies: {[key: string]: string} = {
-//   'react-dom':
-//     'https://cdn.skypack.dev/pin/react-dom@v17.0.1-FZxWEnre1YpJlruVUxMM/react-dom.js',
-//   react:
-//     'https://cdn.skypack.dev/pin/react@v17.0.1-POc2QItJkO3bjziOktDB/react.js',
-//   beamwind:
-//     'https://cdn.skypack.dev/pin/beamwind@v2.0.2-2a2uwoX8I3NyVQ5qsyQ0/beamwind.js',
-// };
 
 const APP_DIRECTORY = resolve(`${__dirname}/../../example/scripts`);
 const FRAME_DIRECTORY = resolve(`${__dirname}/../app`);
-// const CACHE_DIR = resolve(`${__dirname}/../snowpack-cache`);
+const CACHE_DIR = resolve(`${__dirname}/../bundle-cache`);
 const htmlFileName = join(FRAME_DIRECTORY, 'index.html');
 
-function readEntryPoints() {
-  try {
-    return new Map<string, string[]>(
-      JSON.parse(
-        readFileSync(`${__dirname}/../package-entry-points.json`, 'utf8'),
-      ),
-    );
-  } catch (ex) {
-    return new Map<string, string[]>();
-  }
-}
-const entrypoints = readEntryPoints();
-const bundle = getBundler({
-  prefix: '/_bundle_',
-  cwd: APP_DIRECTORY,
-  output: `${__dirname}/../bundle-cache`,
-  getEntrypoints: (dep) => entrypoints.get(dep) ?? [],
-  onEntryPoint: (dep, entrypoint) => {
-    const es = entrypoints.get(dep) ?? [];
-    entrypoints.set(dep, es);
-    if (!es.includes(entrypoint)) {
-      es.push(entrypoint);
-      es.sort();
-      writeFileSync(
-        `${__dirname}/../package-entry-points.json`,
-        JSON.stringify([...entrypoints], null, '  '),
-      );
-    }
-  },
-});
+const APP_EXTENSIONS = [
+  '',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.cjs',
+  '.ts',
+  '.tsx',
+  '/index.js',
+  '/index.jsx',
+  '/index.mjs',
+  '/index.cjs',
+  '/index.ts',
+  '/index.tsx',
+];
 
+const PACKAGE_EXTENSIONS = [
+  '',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.cjs',
+  '/index.js',
+  '/index.jsx',
+  '/index.mjs',
+  '/index.cjs',
+];
+
+const packageExportOverrides: {
+  [key: string]: undefined | {[key: string]: string};
+} = {
+  scheduler: {'.': './', './tracing': './tracing.js'},
+};
+const packageExportsByDirectory = new Map<
+  string,
+  Promise<NormalizedExport[]>
+>();
+async function getPackageExportsCached(directory: string, packageID: string) {
+  const cached = packageExportsByDirectory.get(directory);
+  if (cached) return await cached;
+  const packageName = packageID.split('@').slice(0, -1).join('@');
+  const fresh = getPackageExports(directory, {
+    overrideExports: packageExportOverrides[packageName],
+    allowedExportKeys: ['browser', 'module', 'import', 'default'],
+  });
+  packageExportsByDirectory.set(directory, fresh);
+  return await fresh;
+}
+
+let packageLocationsPromise: Promise<Map<string, PackageLocation>> | undefined;
+// id is of the form "name@version"
+async function getPackageLocationCached(
+  id: string,
+): Promise<PackageLocation | undefined> {
+  if (!packageLocationsPromise) {
+    packageLocationsPromise = findPackageLocations(APP_DIRECTORY);
+    try {
+      await packageLocationsPromise;
+    } catch (ex) {
+      packageLocationsPromise = undefined;
+      throw ex;
+    }
+  }
+  return (await packageLocationsPromise).get(id);
+}
+
+async function bundlePackage(
+  packageID: string,
+): Promise<{bundledDirectory: string} | null> {
+  const packageDirectory = await getPackageLocationCached(packageID);
+  if (!packageDirectory) {
+    return null;
+  }
+
+  const inputs: {[key: string]: string} = {};
+  for (const e of await getPackageExportsCached(
+    packageDirectory.resolvedPackageDirectory,
+    packageID,
+  )) {
+    inputs[`${e.exportName.replace(/\.js$/, '') || 'index'}`] = e.resolvedPath;
+  }
+
+  await bundleDependency(inputs, join(CACHE_DIR, packageID));
+
+  return {bundledDirectory: join(CACHE_DIR, packageID)};
+}
+
+const bundledPackagesCache = new Map<
+  string,
+  Promise<{bundledDirectory: string} | null>
+>();
+async function bundlePackageCached(packageID: string) {
+  const cached = bundledPackagesCache.get(packageID);
+  if (cached) return await cached;
+  const fresh = bundlePackage(packageID);
+  bundledPackagesCache.set(packageID, fresh);
+  return await fresh;
+}
+
+// GET _csrf => CSRF TOKEN
+// POST _api => API calls
+// GET /app/* => get modules from the actual app
+// GET /frame/* => get modules from the pre-provided frame
+// GET /packages/* => get packages
+// GET /dependencies/* => get package dependencies
 createServer(async (req, res) => {
   if (!req.url?.endsWith('.map')) {
     const originalEnd = (res as any).end;
     const start = Date.now();
     res.end = (...args: any[]) => {
+      const time = Date.now() - start;
       console.info(
-        `${res.statusCode} ${req.method} ${req.url} in ${Date.now() - start}ms`,
+        `${
+          res.statusCode === 304
+            ? chalk.green('304')
+            : res.statusCode >= 400
+            ? chalk.red(`${res.statusCode}`)
+            : chalk.blue(`${res.statusCode}`)
+        } ${req.method} ${req.url} in ${
+          time < 10
+            ? chalk.green(`${time}ms`)
+            : time < 100
+            ? chalk.yellow(`${time}ms`)
+            : chalk.red(`${time}ms`)
+        }`,
       );
       return originalEnd.call(res, ...args);
     };
@@ -133,8 +215,11 @@ createServer(async (req, res) => {
         return;
       }
     }
-    if (req.url === '/@graphical-scripts/app') {
-      res.end('');
+    if (
+      req.url === '/_bundle_/@graphical-scripts/state@0.0.0/useObservableState'
+    ) {
+      res.setHeader('Content-Type', 'text/javascript');
+      res.end('export default () => "Hello world";');
       return;
     }
     if (req.url!.startsWith('/app/')) {
@@ -205,22 +290,95 @@ createServer(async (req, res) => {
       }
     }
 
-    const bundleResult = await bundle.handle(req.url!);
-    if (bundleResult?.kind === 'entrypoint') {
-      if (handledUsingCache(bundleResult.id, req, res)) return;
-      res.setHeader('Content-Type', 'text/javascript');
-      res.end(await bundleResult.getContent());
-      return;
-    }
-    if (bundleResult?.kind === 'dependency') {
-      if (handledUsingCache(bundleResult.path, req, res)) return;
+    if (req.url!.startsWith('/dependencies/')) {
+      const path = req.url!.substr('/dependencies/'.length).split('/');
+      let parentID = path[0];
+      let dep = path.slice(1);
+      if (parentID.startsWith('@')) {
+        parentID += `/${dep[0]}`;
+        dep = dep.slice(1);
+      }
+      let childName = dep[0];
+      let entrypoint = dep.slice(1);
+      if (childName.startsWith('@')) {
+        childName += `/${entrypoint[0]}`;
+        entrypoint = entrypoint.slice(1);
+      }
+      let parentDirectory =
+        parentID === '_'
+          ? APP_DIRECTORY
+          : (await getPackageLocationCached(parentID))
+              ?.resolvedPackageDirectory;
+      if (!parentDirectory) {
+        res.statusCode = 404;
+        res.end(`Dependency not found`);
+        return;
+      }
+      let pkgStr: string | null = null;
+      while (parentDirectory && pkgStr === null) {
+        pkgStr = await promises
+          .readFile(
+            join(parentDirectory, 'node_modules', childName, 'package.json'),
+            'utf8',
+          )
+          .catch(() => null);
+
+        if (parentDirectory === dirname(parentDirectory)) {
+          break;
+        }
+        parentDirectory = dirname(parentDirectory);
+      }
+      if (pkgStr === null) {
+        res.statusCode = 404;
+        res.end(`Dependency not found`);
+        return;
+      }
+      const pkg = JSON.parse(pkgStr);
+      if (handledUsingCache(`${pkg.name}@${pkg.version}`, req, res)) return;
+      const source = `/packages/${pkg.name}@${pkg.version}/${
+        entrypoint.length
+          ? `${entrypoint.join('/').replace(/\.js$/, '')}`
+          : `index`
+      }.js`;
       res.setHeader('Content-Type', 'text/javascript');
       res.end(
-        `import * as e from '${bundleResult.path}';\n` +
-          `export default e.default;\n` +
-          `export * from '${bundleResult.path}';`,
+        `import * as p from '${source}';\nexport default p.default;\nexport * from '${source}';\n`,
       );
       return;
+    }
+
+    if (req.url!.startsWith('/packages/')) {
+      if (handledUsingCache(req.url!, req, res)) {
+        return;
+      }
+
+      const path = req.url!.substr('/packages/'.length).split('/');
+      let packageID = path[0];
+      let entrypoint = path.slice(1);
+      if (packageID.startsWith('@')) {
+        packageID += `/${entrypoint[0]}`;
+        entrypoint = entrypoint.slice(1);
+      }
+
+      const bundled = await bundlePackageCached(packageID);
+      if (!bundled) {
+        res.statusCode = 404;
+        res.end('Could not find the requested package');
+        return;
+      }
+      if (
+        await servePackageFile(
+          {
+            packageID,
+            packageDirectory: bundled.bundledDirectory,
+            entryPoint: entrypoint.join('/'),
+          },
+          req,
+          res,
+        )
+      ) {
+        return;
+      }
     }
 
     const path = join(FRAME_DIRECTORY, req.url!.substr(1));
@@ -289,19 +447,10 @@ async function servePath(
     res.end(
       await rewriteImports({source: transformed, name: path}, async (dep) => {
         if (dep[0] === '.') {
-          const absolutePath = await new Promise<string>((resolve, reject) => {
-            resolveNode(
-              dep,
-              {
-                basedir: dirname(path),
-                extensions: ['.js', '.jsx', '.ts', '.tsx'],
-              },
-              (err: any, result: any) => {
-                if (err) reject(err);
-                else resolve(result);
-              },
-            );
-          });
+          const absolutePath = await findPath(
+            join(dirname(path), dep),
+            APP_EXTENSIONS,
+          );
           let relativePath = relative(FRAME_DIRECTORY, absolutePath);
           if (relativePath[0] !== '.') {
             return `/${relativePath.replace(/\.(jsx|ts|tsx)$/, '.js')}`;
@@ -320,10 +469,77 @@ async function servePath(
           return builtinDependencies[dep];
         }
 
-        return bundle.resolve(dep);
+        return resolvePackage(dep, '_');
       }),
     );
     return true;
   }
   return false;
+}
+
+async function servePackageFile(
+  file: {packageID: string; packageDirectory: string; entryPoint: string},
+  _req: IncomingMessage,
+  res: ServerResponse,
+) {
+  const entryPointFileName = join(file.packageDirectory, file.entryPoint);
+  const source = await promises
+    .readFile(entryPointFileName, 'utf8')
+    .catch((ex) => (ex.code === 'ENOENT' ? null : Promise.reject(ex)));
+  if (source !== null) {
+    res.setHeader('Content-Type', 'text/javascript');
+    res.end(
+      await rewriteImports({source, name: entryPointFileName}, async (dep) => {
+        if (dep[0] === '.') {
+          const absolutePath = await findPath(
+            join(dirname(entryPointFileName), dep),
+            PACKAGE_EXTENSIONS,
+          );
+          const relativePath = relative(file.packageDirectory, absolutePath);
+          if (relativePath[0] !== '.') {
+            return `/packages/${file.packageID}/${relativePath}`;
+          }
+          if (relativePath[0] === '.') {
+            throw new Error(
+              `Cannot import ${absolutePath} because it is outside the package directory.`,
+            );
+          }
+        }
+        if (dep in builtinDependencies) {
+          return builtinDependencies[dep];
+        }
+
+        return resolvePackage(dep, file.packageID);
+      }),
+    );
+    return true;
+  }
+  console.log(`NOT FOUND: ${entryPointFileName}`);
+  return false;
+}
+
+function resolvePackage(importSpecifier: string, parentPackageID: string) {
+  return `/dependencies/${parentPackageID}/${importSpecifier}`;
+}
+
+async function findPath(base: string, possibleExtensions: string[]) {
+  for (const possibility of possibleExtensions) {
+    const absolutePath = base.replace(/(?:\\|\/)$/, '') + possibility;
+    if (
+      await promises.stat(absolutePath).then(
+        (s) => s.isFile(),
+        () => false,
+      )
+    ) {
+      return absolutePath;
+    }
+  }
+  throw new Error(
+    `Unable to resolve "${relative(
+      process.cwd(),
+      base,
+    )}", tried:\n\n${possibleExtensions
+      .map((ext) => ` - ${base}${ext}`)
+      .join('\n')}`,
+  );
 }

@@ -1,7 +1,7 @@
 {
-  "name": "@graphical-scripts/dark-mode-selector",
+  "name": "@graphical-scripts/rollup-plugin-wrap-commonjs-entrypoints",
   "version": "0.0.0",
-  "description": "npm-package-template",
+  "description": "Replace imports of node-fetch and whatwg-fetch with the native browser version",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "lib/index.d.ts",
@@ -20,14 +20,11 @@
     "build": "tsc"
   },
   "dependencies": {
-    "beamwind": "^2.0.2"
+    "vm2": "^3.9.2"
   },
   "devDependencies": {
-    "@types/react": "^17.0.0",
-    "react": "^17.0.1"
-  },
-  "peerDependencies": {
-    "react": "*"
+    "cjs-module-lexer": "^1.0.0",
+    "rollup": "^2.34.2"
   },
   "engines": {
     "node": ">=12.0.0"

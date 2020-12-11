@@ -18,7 +18,9 @@
     "start": "node lib"
   },
   "dependencies": {
-    "@graphical-scripts/get-package-exports": "^0.0.0",
+    "@graphical-scripts/rollup-plugin-native-fetch": "^0.0.0",
+    "@graphical-scripts/rollup-plugin-strip-source-mapping": "^0.0.0",
+    "@graphical-scripts/rollup-plugin-wrap-commonjs-entrypoints": "^0.0.0",
     "@rollup/plugin-alias": "^3.1.1",
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-json": "^4.1.0",

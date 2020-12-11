@@ -33,14 +33,16 @@
     "core": "yarn workspace @graphical-scripts/core",
     "example": "yarn workspace @graphical-scripts/example",
     "bundle": "yarn workspace @graphical-scripts/bundle",
+    "get-package-exports": "yarn workspace @graphical-scripts/get-package-exports",
     "rewrite-imports": "yarn workspace @graphical-scripts/rewrite-imports",
-    "build": "yarn build:ts && yarn build:rollup",
+    "build": "yarn build:links && yarn build:ts && yarn build:rollup",
+    "build:links": "yarn --offline",
     "build:ts": "tsc --build",
     "build:rollup": "wsrun --stages --collect-logs --rewrite-paths --report --prefix node ../../scripts/rollup",
-    "postbuild:ts": "rimraf packages/*/lib/**/__tests__ && rimraf **/node_modules/.cache/snowpack",
+    "postbuild:ts": "rimraf packages/*/lib/**/__tests__ && rimraf packages/core/bundle-cache",
     "lint": "tslint './src/**/*.{ts,tsx}' -t verbose -p .",
-    "prettier:write": "prettier --ignore-path .gitignore --write './**/*.{md,json,yaml,js,jsx,ts,tsx}'",
-    "prettier:check": "prettier --ignore-path .gitignore --list-different './**/*.{md,json,yaml,js,jsx,ts,tsx}'",
+    "prettier:write": "prettier --ignore-path .gitignore --write './**/*.{md,yaml,js,jsx,ts,tsx}'",
+    "prettier:check": "prettier --ignore-path .gitignore --list-different './**/*.{md,yaml,js,jsx,ts,tsx}'",
     "test": "jest",
     "ci:test": "jest --silent --maxWorkers=2"
   },
@@ -74,7 +76,7 @@
       "prettier --write",
       "tslint -t verbose -p ."
     ],
-    "*.{md,json,yaml,js,jsx}": [
+    "*.{md,yaml,js,jsx}": [
       "prettier --write"
     ]
   }

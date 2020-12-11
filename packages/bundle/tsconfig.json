@@ -9,5 +9,10 @@
     "lib": ["DOM", "ES2020"]
   },
   "include": ["src"],
-  "references": [{"path": "../dark-mode-selector"}]
+  "references": [
+    {"path": "../get-package-exports"},
+    {"path": "../rollup-plugin-native-fetch"},
+    {"path": "../rollup-plugin-strip-source-mapping"},
+    {"path": "../rollup-plugin-wrap-commonjs-entrypoints"},
+  ],
 }

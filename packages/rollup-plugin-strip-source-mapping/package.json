@@ -1,7 +1,7 @@
 {
-  "name": "@graphical-scripts/dark-mode-selector",
+  "name": "@graphical-scripts/rollup-plugin-strip-source-mapping",
   "version": "0.0.0",
-  "description": "npm-package-template",
+  "description": "Remove source maps from files before they are processed by rollup",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "lib/index.d.ts",
@@ -19,15 +19,9 @@
   "scripts": {
     "build": "tsc"
   },
-  "dependencies": {
-    "beamwind": "^2.0.2"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/react": "^17.0.0",
-    "react": "^17.0.1"
-  },
-  "peerDependencies": {
-    "react": "*"
+    "rollup": "^2.34.2"
   },
   "engines": {
     "node": ">=12.0.0"

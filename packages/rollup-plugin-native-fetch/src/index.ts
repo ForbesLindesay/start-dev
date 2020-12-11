@@ -36,9 +36,9 @@ function isNodeFetch(id: string): boolean {
   );
 }
 
-export function rollupPluginCatchFetch(): Plugin {
+export default function rollupPluginNativeFetch(): Plugin {
   return {
-    name: 'snowpack:fetch-handler',
+    name: 'rollup-plugin-native-fetch',
     resolveId(id) {
       return isNodeFetch(id) ? id : null;
     },
