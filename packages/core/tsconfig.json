@@ -9,5 +9,9 @@
     "lib": ["DOM", "ES2020"]
   },
   "include": ["src"],
-  "references": [{"path": "../dark-mode-selector"}]
+  "references": [
+    {"path": "../bundle"},
+    {"path": "../dark-mode-selector"},
+    {"path": "../rewrite-imports"}
+  ]
 }

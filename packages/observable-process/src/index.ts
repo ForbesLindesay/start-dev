@@ -1,3 +1,4 @@
+export default 1;
 // import {resolve} from 'path';
 // import {spawn, ChildProcess} from 'child_process';
 // import {Readable} from 'stream';

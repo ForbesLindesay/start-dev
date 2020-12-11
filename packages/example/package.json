@@ -12,5 +12,6 @@
   "scripts": {
     "start": "graphical scripts index.tsx"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "license": "MIT"
 }

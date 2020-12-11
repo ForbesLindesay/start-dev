@@ -1,5 +1,6 @@
 let csrfTokenCache;
 
+// while(true);console.log(${JSON.stringify(CSRF_TOKEN)})
 export async function getCsrfToken() {
   try {
     csrfTokenCache =
@@ -9,7 +10,12 @@ export async function getCsrfToken() {
           throw new Error(response.statusText + ': ' + (await response.text()));
         }
         const responseText = await response.text();
-        return responseText.substr('while(true);'.length);
+        return JSON.parse(
+          responseText.substring(
+            'while(true);console.log('.length,
+            responseText.length - 1,
+          ),
+        );
       });
     return await csrfTokenCache;
   } catch (ex) {
@@ -28,6 +34,10 @@ export async function callmethod(request) {
     body: JSON.stringify(request),
   });
   if (!response.ok) {
+    if (response.status === 403) {
+      csrfTokenCache = undefined;
+      return await callmethod(request);
+    }
     if (response.headers.get('content-type') === 'application/json') {
       const err = await response.json();
 

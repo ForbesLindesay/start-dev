@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/find-package-locations",
+  "name": "@graphical-scripts/get-package-exports",
   "version": "0.0.0",
   "description": "npm-package-template",
   "main": "dist/index.cjs",

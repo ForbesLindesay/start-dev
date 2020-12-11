@@ -2,10 +2,24 @@
   "name": "@graphical-scripts/state",
   "version": "0.0.0",
   "description": "npm-package-template",
-  "main": "lib/index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.cjs"
+    },
+    "./useObservableState": {
+      "import": "./dist/useObservableState.mjs",
+      "default": "./dist/useObservableState.cjs"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
-    "lib/"
+    "dist/",
+    "lib/",
+    "useObservableState"
   ],
   "scripts": {
     "build": "tsc"
@@ -20,5 +34,6 @@
   },
   "engines": {
     "node": ">=12.0.0"
-  }
+  },
+  "license": "MIT"
 }

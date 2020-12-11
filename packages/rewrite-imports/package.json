@@ -1,7 +1,7 @@
 {
-  "name": "@graphical-scripts/find-package-locations",
+  "name": "@graphical-scripts/rewrite-imports",
   "version": "0.0.0",
-  "description": "npm-package-template",
+  "description": "Rewrite import paths in ESModules without a full parser like babel",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "lib/index.d.ts",
@@ -20,7 +20,10 @@
     "build": "tsc"
   },
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/es-module-lexer": "^0.3.0",
+    "es-module-lexer": "^0.3.26"
+  },
   "engines": {
     "node": ">=12.0.0"
   },

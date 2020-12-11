@@ -5,9 +5,10 @@
     "incremental": true,
     "composite": true,
     "rootDir": "src",
+    "module": "ES2020",
     "tsBuildInfoFile": "lib/.tsbuildinfo",
-    "lib": ["DOM", "ES2020"]
+    "lib": ["DOM", "ES2020"],
+    "jsx": "react"
   },
-  "include": ["src"],
-  "references": [{"path": "../bundle"}, {"path": "../dark-mode-selector"}]
+  "include": ["src"]
 }

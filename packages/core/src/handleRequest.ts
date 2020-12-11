@@ -1,5 +1,5 @@
 import {createHash} from 'crypto';
-import {getModuleAPI} from './rpc-client';
+import {loadModule} from './rpc-client';
 
 if (process.env.POPULATE_SNOWPACK_CACHE === 'true') {
   require('rimraf').sync(`${__dirname}/../snowpack-cache`);
@@ -7,12 +7,12 @@ if (process.env.POPULATE_SNOWPACK_CACHE === 'true') {
 
 export default async function handleRequest(request: any): Promise<any> {
   if (request.type === 'method-call') {
-    return await getModuleAPI(request.moduleID)[request.methodName](
+    return await (await loadModule(request.moduleID))[request.methodName](
       ...request.args,
     );
   }
   if (request.type === 'long-poll') {
-    const observable = getModuleAPI(request.moduleID)[request.exportName];
+    const observable = (await loadModule(request.moduleID))[request.exportName];
     const etag = createHash('sha1')
       .update(JSON.stringify(observable.getValue()))
       .digest('base64');

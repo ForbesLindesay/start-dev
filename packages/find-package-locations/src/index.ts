@@ -67,7 +67,26 @@ export default async function findPackageLocations(cwd: string) {
             return;
           }
           for (const directoryName of directoryNames) {
-            testDirectory(sourceDirectory, join(node_modules, directoryName));
+            if (directoryName[0] === '@') {
+              const scopeDir = join(node_modules, directoryName);
+              task((cb) => {
+                readdir(scopeDir, (err, directoryNames) => {
+                  if (err) {
+                    cb();
+                    return;
+                  }
+                  for (const directoryName of directoryNames) {
+                    testDirectory(
+                      sourceDirectory,
+                      join(scopeDir, directoryName),
+                    );
+                  }
+                  cb();
+                });
+              });
+            } else if (directoryName !== '.bin' && directoryName !== '.cache') {
+              testDirectory(sourceDirectory, join(node_modules, directoryName));
+            }
           }
           cb();
         });
