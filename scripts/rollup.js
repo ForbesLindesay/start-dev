@@ -27,31 +27,33 @@ async function run() {
   if (!pkg.exports) {
     throw new Error('You need to define package.json "exports"');
   }
-  const input = {};
-  Object.entries(pkg.exports).forEach(([key, value]) => {
-    if (key.endsWith('/')) {
-      throw new Error(`"exports" key shouldn't end with "/": "${key}"`);
-    }
-    const v = typeof value === 'string' ? value : value.default;
-    if (typeof v !== 'string') {
-      throw new Error(`Invaid package export "${key}"`);
-    }
-    if (!v.startsWith('./dist/')) {
-      return;
-    }
-    if (!v.endsWith('.cjs')) {
-      throw new Error(`Expected default export "${key}" to be .cjs`);
-    }
+  const input = config.input || {};
+  if (!config.input) {
+    Object.entries(pkg.exports).forEach(([key, value]) => {
+      if (key.endsWith('/')) {
+        throw new Error(`"exports" key shouldn't end with "/": "${key}"`);
+      }
+      const v = typeof value === 'string' ? value : value.default;
+      if (typeof v !== 'string') {
+        throw new Error(`Invaid package export "${key}"`);
+      }
+      if (!v.startsWith('./dist/')) {
+        return;
+      }
+      if (!v.endsWith('.cjs')) {
+        throw new Error(`Expected default export "${key}" to be .cjs`);
+      }
 
-    input[v.substr('./dist/'.length).replace(/\.cjs/g, '')] = `lib/${v
-      .substr('./dist/'.length)
-      .replace(/\.cjs/g, '')}`;
-  });
+      input[v.substr('./dist/'.length).replace(/\.cjs/g, '')] = `lib/${v
+        .substr('./dist/'.length)
+        .replace(/\.cjs/g, '')}`;
+    });
+  }
   let packageBundle;
   try {
     packageBundle = await rollup({
       input,
-      external: [
+      external: config.external || [
         ...Object.keys(pkg.dependencies || {}),
         ...Object.keys(pkg.peerDependencies || {}),
         'react',

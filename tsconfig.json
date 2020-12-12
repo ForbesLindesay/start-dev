@@ -19,5 +19,6 @@
     {"path": "./packages/rollup-plugin-native-fetch"},
     {"path": "./packages/rollup-plugin-strip-source-mapping"},
     {"path": "./packages/state"},
+    {"path": "./packages/websocket-rpc"},
   ]
 }

@@ -1,6 +1,7 @@
 import {createHash} from 'crypto';
 import {Server as HttpServer} from 'http';
 import {Server as WsServer} from 'ws';
+import chalk from 'chalk';
 import {loadModule} from './rpc-client';
 
 if (process.env.POPULATE_SNOWPACK_CACHE === 'true') {
@@ -69,19 +70,12 @@ export default async function handleRequest(request: any): Promise<any> {
   }
 }
 
-// import {createHash}
-// import { ObservableState } from ".";
-
-// export default async function longPoll<T>(state: ObservableState<T>, lastToken?: string) {
-//   if (JSON.stringify(state.getValue())) {
-
-//   }
-// }
-
 export function createWebsocketServer(server: HttpServer, csrf: string) {
   const wss = new WsServer({server});
 
+  let count = 0;
   wss.on('connection', (ws) => {
+    console.log(chalk.cyan(`connection open (active count: ${++count})`));
     let authenticated = false;
     const unsubscribe: (() => void)[] = [];
     ws.on('message', async (message) => {
@@ -173,6 +167,7 @@ export function createWebsocketServer(server: HttpServer, csrf: string) {
     }, 2_000);
 
     ws.on('close', () => {
+      console.log(chalk.cyan(`connection close (active count: ${--count})`));
       for (const u of unsubscribe) {
         u();
       }

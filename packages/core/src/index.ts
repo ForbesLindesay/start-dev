@@ -7,8 +7,8 @@ import {transform} from 'sucrase';
 import {getType} from 'mime';
 import bundleDependency from '@graphical-scripts/bundle';
 import rewriteImports from '@graphical-scripts/rewrite-imports';
-import getRpcClient from './rpc-client';
-import handleRequest, {createWebsocketServer} from './handleRequest';
+// import getRpcClient from './rpc-client';
+// import handleRequest, {createWebsocketServer} from './handleRequest';
 import findPackageLocations, {
   PackageLocation,
 } from '@graphical-scripts/find-package-locations';
@@ -16,6 +16,7 @@ import getPackageExports, {
   NormalizedExport,
 } from '@graphical-scripts/get-package-exports';
 import chalk from 'chalk';
+import createWebsocketServer from '@graphical-scripts/websocket-rpc/server';
 // import WebSocket from 'ws';
 
 // we intentionally wait until after we've loaded all the internal modules before registering sucrase to
@@ -65,6 +66,7 @@ const packageExportOverrides: {
   [key: string]: undefined | {[key: string]: string};
 } = {
   scheduler: {'.': './', './tracing': './tracing.js'},
+  '@graphical-scripts/websocket-rpc': {'./client': './dist/client.mjs'},
 };
 const packageExportsByDirectory = new Map<
   string,
@@ -218,44 +220,44 @@ const server = createServer(async (req, res) => {
       res.end(`Missing or invalid CSRF token`);
       return;
     }
-    if (req.method === 'POST' && req.url === '/_api') {
-      res.setHeader('Content-Type', 'application/json');
-      try {
-        const requestString = await new Promise<string>((resolve, reject) => {
-          const body: Buffer[] = [];
-          req.on('error', reject);
-          req.on('data', (data) => {
-            body.push(data);
-          });
-          req.on('end', () => {
-            resolve(Buffer.concat(body).toString('utf8'));
-          });
-        });
-        const request = JSON.parse(requestString);
-        res.end(
-          JSON.stringify((await handleRequest(request)) ?? null, null, '  '),
-        );
-        return;
-      } catch (ex) {
-        console.error(ex.stack || ex);
-        try {
-          res.statusCode = 500;
-          res.end(
-            JSON.stringify(
-              {
-                message: ex.message,
-                stack: (ex.stack || '').split('\n'),
-              },
-              null,
-              '  ',
-            ),
-          );
-        } catch (ex) {
-          // ignore error within error
-        }
-        return;
-      }
-    }
+    // if (req.method === 'POST' && req.url === '/_api') {
+    //   res.setHeader('Content-Type', 'application/json');
+    //   try {
+    //     const requestString = await new Promise<string>((resolve, reject) => {
+    //       const body: Buffer[] = [];
+    //       req.on('error', reject);
+    //       req.on('data', (data) => {
+    //         body.push(data);
+    //       });
+    //       req.on('end', () => {
+    //         resolve(Buffer.concat(body).toString('utf8'));
+    //       });
+    //     });
+    //     const request = JSON.parse(requestString);
+    //     res.end(
+    //       JSON.stringify((await handleRequest(request)) ?? null, null, '  '),
+    //     );
+    //     return;
+    //   } catch (ex) {
+    //     console.error(ex.stack || ex);
+    //     try {
+    //       res.statusCode = 500;
+    //       res.end(
+    //         JSON.stringify(
+    //           {
+    //             message: ex.message,
+    //             stack: (ex.stack || '').split('\n'),
+    //           },
+    //           null,
+    //           '  ',
+    //         ),
+    //       );
+    //     } catch (ex) {
+    //       // ignore error within error
+    //     }
+    //     return;
+    //   }
+    // }
     if (
       req.url === '/_bundle_/@graphical-scripts/state@0.0.0/useObservableState'
     ) {
@@ -264,13 +266,6 @@ const server = createServer(async (req, res) => {
       return;
     }
     if (req.url!.startsWith('/app/')) {
-      if (req.url!.endsWith('.api.js')) {
-        res.setHeader('Content-Type', 'text/javascript');
-        res.end(
-          await getRpcClient(APP_DIRECTORY, req.url!.substr('/app/'.length)),
-        );
-        return;
-      }
       if (req.url!.endsWith('.js')) {
         for (const ext of ['.js', '.jsx', '.ts', '.tsx']) {
           const path = join(
@@ -296,16 +291,6 @@ const server = createServer(async (req, res) => {
       }
     }
     if (req.url!.startsWith('/frame/')) {
-      if (req.url!.endsWith('.api.js')) {
-        res.setHeader('Content-Type', 'text/javascript');
-        res.end(
-          await getRpcClient(
-            FRAME_DIRECTORY,
-            req.url!.substr('/frame/'.length),
-          ),
-        );
-        return;
-      }
       if (req.url!.endsWith('.js')) {
         for (const ext of ['.js', '.jsx', '.ts', '.tsx']) {
           const path = join(
@@ -449,7 +434,11 @@ const server = createServer(async (req, res) => {
     res.end('Internal sever error');
   }
 });
-createWebsocketServer(server, CSRF_TOKEN);
+const websocketServer = createWebsocketServer({
+  server,
+  token: CSRF_TOKEN,
+  clientName: 'client',
+});
 server.listen(3001);
 
 function handledUsingCache(
@@ -472,13 +461,23 @@ async function servePath(
   req: IncomingMessage,
   res: ServerResponse,
 ) {
-  const stat = await promises
-    .stat(path)
-    .catch((ex) => (ex.code === 'ENOENT' ? null : Promise.reject(ex)));
+  const stat = await promises.stat(path).then(
+    (s) => (s.isFile() ? s : null),
+    (ex) => (ex.code === 'ENOENT' ? null : Promise.reject(ex)),
+  );
   if (stat) {
+    const isApiClient = /\.api\.[a-z]+$/.test(path);
+    if (isApiClient) {
+      const src = `import client from '/frame/api-client.js';\n${await websocketServer.getClient(
+        path,
+      )}`;
+      res.setHeader('Content-Type', 'text/javascript');
+      res.end(src);
+      return true;
+    }
     const etag = stat.mtime.toISOString();
     if (handledUsingCache(etag, req, res)) return true;
-    res.setHeader('Content-Type', 'text/javascript');
+
     const transformed = transform(
       await promises.readFile(path, 'utf8'),
       path.endsWith('.tsx')
@@ -487,8 +486,9 @@ async function servePath(
         ? {transforms: ['typescript'], filePath: req.url}
         : {transforms: ['flow', 'jsx'], filePath: req.url},
     ).code;
-    res.end(
-      await rewriteImports({source: transformed, name: path}, async (dep) => {
+    const javaScript = await rewriteImports(
+      {source: transformed, name: path},
+      async (dep) => {
         if (dep[0] === '.') {
           const absolutePath = await findPath(
             join(dirname(path), dep),
@@ -513,8 +513,11 @@ async function servePath(
         }
 
         return resolvePackage(dep, '_');
-      }),
+      },
     );
+
+    res.setHeader('Content-Type', 'text/javascript');
+    res.end(javaScript);
     return true;
   }
   return false;

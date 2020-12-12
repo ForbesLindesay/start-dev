@@ -23,6 +23,7 @@
     "@graphical-scripts/find-package-locations": "^0.0.0",
     "@graphical-scripts/get-package-exports": "^0.0.0",
     "@graphical-scripts/rewrite-imports": "^0.0.0",
+    "@graphical-scripts/websocket-rpc": "^0.0.0",
     "@types/ws": "^7.4.0",
     "beamwind": "^2.0.2",
     "chalk": "^4.1.0",

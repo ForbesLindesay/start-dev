@@ -2,17 +2,12 @@
   "extends": "@forbeslindesay/tsconfig",
   "compilerOptions": {
     "outDir": "lib",
+    "module": "ES2020",
     "incremental": true,
     "composite": true,
     "rootDir": "src",
     "tsBuildInfoFile": "lib/.tsbuildinfo",
     "lib": ["DOM", "ES2020"]
   },
-  "include": ["src"],
-  "references": [
-    {"path": "../bundle"},
-    {"path": "../dark-mode-selector"},
-    {"path": "../rewrite-imports"},
-    {"path": "../websocket-rpc"}
-  ]
+  "include": ["src"]
 }
