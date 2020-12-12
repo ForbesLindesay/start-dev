@@ -19,14 +19,13 @@
   "scripts": {
     "build": "tsc"
   },
-  "dependencies": {
-    "beamwind": "^2.0.2"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/react": "^17.0.0",
     "react": "^17.0.1"
   },
   "peerDependencies": {
+    "beamwind": "*",
     "react": "*"
   },
   "engines": {

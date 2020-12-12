@@ -25,10 +25,12 @@ export default function createStateAtom<T>(
       },
     },
     function setValue(updatedValue) {
-      value =
+      const updatedValueRaw =
         typeof updatedValue === 'function'
           ? (updatedValue as any)(value)
           : updatedValue;
+      if (value === updatedValueRaw) return;
+      value = updatedValueRaw;
       dirty = true;
       while (dirty && !updating) {
         updating = true;

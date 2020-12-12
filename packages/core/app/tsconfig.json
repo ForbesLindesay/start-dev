@@ -1,0 +1,14 @@
+{
+  "extends": "@forbeslindesay/tsconfig",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "./",
+    "lib": ["DOM", "ES2020"],
+    "jsx": "react"
+  },
+  "include": ["*"],
+  "references": [
+    {"path": "../../dark-mode-selector"},
+    {"path": "../../websocket-rpc"},
+  ]
+}

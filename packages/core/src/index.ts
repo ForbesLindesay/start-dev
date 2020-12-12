@@ -1,14 +1,12 @@
+import {URL} from 'url';
 import {resolve, relative, dirname, join} from 'path';
 import {promises} from 'fs';
 import {randomBytes} from 'crypto';
-// import {createBrotliDecompress} from 'zlib';
 import {createServer, IncomingMessage, ServerResponse} from 'http';
 import {transform} from 'sucrase';
 import {getType} from 'mime';
 import bundleDependency from '@graphical-scripts/bundle';
 import rewriteImports from '@graphical-scripts/rewrite-imports';
-// import getRpcClient from './rpc-client';
-// import handleRequest, {createWebsocketServer} from './handleRequest';
 import findPackageLocations, {
   PackageLocation,
 } from '@graphical-scripts/find-package-locations';
@@ -17,11 +15,6 @@ import getPackageExports, {
 } from '@graphical-scripts/get-package-exports';
 import chalk from 'chalk';
 import createWebsocketServer from '@graphical-scripts/websocket-rpc/server';
-// import WebSocket from 'ws';
-
-// we intentionally wait until after we've loaded all the internal modules before registering sucrase to
-// handle any server side modules
-require('sucrase/register');
 
 const CSRF_TOKEN = randomBytes(128).toString('base64');
 
@@ -33,6 +26,8 @@ const APP_DIRECTORY = resolve(`${__dirname}/../../example/scripts`);
 const FRAME_DIRECTORY = resolve(`${__dirname}/../app`);
 const CACHE_DIR = resolve(`${__dirname}/../bundle-cache`);
 const htmlFileName = join(FRAME_DIRECTORY, 'index.html');
+const PORT_NUMBER = 3001;
+const ORIGIN = `http://localhost:${PORT_NUMBER}`;
 
 const APP_EXTENSIONS = [
   '',
@@ -177,11 +172,7 @@ async function bundlePackageCached(packageID: string) {
 // GET /packages/* => get packages
 // GET /dependencies/* => get package dependencies
 const server = createServer(async (req, res) => {
-  // if (!req.url?.endsWith('.map')) {
-  console.log(chalk.gray(`${req.method} ${req.url}`));
-  if (req.url === '/packages/scheduler@0.20.1/tracing.js.map') {
-    debugger;
-  }
+  // console.log(chalk.gray(`${req.method} ${req.url}`));
   const originalEnd = (res as any).end;
   const start = Date.now();
   res.end = (...args: any[]) => {
@@ -203,66 +194,32 @@ const server = createServer(async (req, res) => {
     );
     return originalEnd.call(res, ...args);
   };
-  // }
+  const referer = req.headers['referer'];
+  let refererURL: URL | null = null;
   try {
-    if (req.url === '/_csrf') {
-      if (!req.headers.referer?.startsWith('http://localhost:3001/')) {
-        res.statusCode = 400;
-        res.end('Invalid referer for CSRF request');
-        return;
-      }
-      res.setHeader('Content-Type', 'text/javascript');
-      res.end(`while(true);console.log(${JSON.stringify(CSRF_TOKEN)})`);
+    refererURL = referer !== undefined ? new URL(referer) : null;
+  } catch (ex) {
+    // ignore error parsing referer
+  }
+  if (req.method === 'POST' && req.url === '/_csrf') {
+    if (!refererURL || refererURL.origin !== ORIGIN) {
+      res.statusCode = 400;
+      res.end(`Invalid referer for CSRF request, expected ${ORIGIN}`);
       return;
     }
+    res.setHeader('Content-Type', 'text/javascript');
+    res.end(`while(true);console.log(${JSON.stringify(CSRF_TOKEN)})`);
+    return;
+  }
+  if (req.method !== 'GET') {
+    res.statusCode = 403;
+    res.end(`Unexpected POST request`);
+    return;
+  }
+  try {
     if (req.method !== 'GET' && req.headers['x-csrf-token'] !== CSRF_TOKEN) {
       res.statusCode = 403;
       res.end(`Missing or invalid CSRF token`);
-      return;
-    }
-    // if (req.method === 'POST' && req.url === '/_api') {
-    //   res.setHeader('Content-Type', 'application/json');
-    //   try {
-    //     const requestString = await new Promise<string>((resolve, reject) => {
-    //       const body: Buffer[] = [];
-    //       req.on('error', reject);
-    //       req.on('data', (data) => {
-    //         body.push(data);
-    //       });
-    //       req.on('end', () => {
-    //         resolve(Buffer.concat(body).toString('utf8'));
-    //       });
-    //     });
-    //     const request = JSON.parse(requestString);
-    //     res.end(
-    //       JSON.stringify((await handleRequest(request)) ?? null, null, '  '),
-    //     );
-    //     return;
-    //   } catch (ex) {
-    //     console.error(ex.stack || ex);
-    //     try {
-    //       res.statusCode = 500;
-    //       res.end(
-    //         JSON.stringify(
-    //           {
-    //             message: ex.message,
-    //             stack: (ex.stack || '').split('\n'),
-    //           },
-    //           null,
-    //           '  ',
-    //         ),
-    //       );
-    //     } catch (ex) {
-    //       // ignore error within error
-    //     }
-    //     return;
-    //   }
-    // }
-    if (
-      req.url === '/_bundle_/@graphical-scripts/state@0.0.0/useObservableState'
-    ) {
-      res.setHeader('Content-Type', 'text/javascript');
-      res.end('export default () => "Hello world";');
       return;
     }
     if (req.url!.startsWith('/app/')) {
@@ -419,15 +376,10 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    if (req.method === 'GET') {
-      const etag = (await promises.stat(htmlFileName)).mtime.toISOString();
-      if (handledUsingCache(etag, req, res)) return;
-      res.setHeader('Content-Type', 'text/html');
-      res.end(await promises.readFile(htmlFileName));
-      return;
-    }
-    res.statusCode = 404;
-    res.end('Page not found');
+    const etag = (await promises.stat(htmlFileName)).mtime.toISOString();
+    if (handledUsingCache(etag, req, res)) return;
+    res.setHeader('Content-Type', 'text/html');
+    res.end(await promises.readFile(htmlFileName));
   } catch (ex) {
     console.error(ex.stack);
     res.statusCode = 500;

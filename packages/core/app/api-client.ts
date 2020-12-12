@@ -1,7 +1,7 @@
 import Client from '@graphical-scripts/websocket-rpc/client';
 
 async function getCsrfToken() {
-  const response = await fetch('/_csrf');
+  const response = await fetch('/_csrf', {method: 'POST'});
   if (!response.ok) {
     throw new Error(response.statusText + ': ' + (await response.text()));
   }
