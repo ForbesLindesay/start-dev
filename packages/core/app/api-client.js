@@ -1,28 +1,134 @@
-let csrfTokenCache;
+let nextMessageID = 1;
 
-// while(true);console.log(${JSON.stringify(CSRF_TOKEN)})
-export async function getCsrfToken() {
-  try {
-    csrfTokenCache =
-      csrfTokenCache ||
-      fetch('/_csrf').then(async (response) => {
-        if (!response.ok) {
-          throw new Error(response.statusText + ': ' + (await response.text()));
-        }
-        const responseText = await response.text();
-        return JSON.parse(
-          responseText.substring(
-            'while(true);console.log('.length,
-            responseText.length - 1,
-          ),
-        );
-      });
-    return await csrfTokenCache;
-  } catch (ex) {
-    csrfTokenCache = undefined;
-    throw ex;
+async function getCsrfToken() {
+  const response = await fetch('/_csrf');
+  if (!response.ok) {
+    throw new Error(response.statusText + ': ' + (await response.text()));
   }
+  const responseText = await response.text();
+  // while(true);console.log(${JSON.stringify(CSRF_TOKEN)})
+  return JSON.parse(
+    responseText.substring(
+      'while(true);console.log('.length,
+      responseText.length - 1,
+    ),
+  );
 }
+
+const subscriptions = new Map();
+const pendingRequests = new Map();
+const inFlightRequests = new Map();
+let send = null;
+function createSocket() {
+  const socket = new WebSocket(`ws://${location.host}`);
+  let connecting = false;
+
+  const authMessageID = nextMessageID++;
+
+  socket.addEventListener('open', () => {
+    connect();
+  });
+
+  function connect() {
+    if (connecting) return;
+    connecting = true;
+    send = null;
+    getCsrfToken().then(
+      (csrfToken) => {
+        socket.send(
+          JSON.stringify({kind: 'auth', id: authMessageID, csrf: csrfToken}),
+        );
+      },
+      () => {
+        connecting = false;
+        setTimeout(connect, Math.floor(Math.random() * 1000 + 2000));
+      },
+    );
+  }
+
+  socket.addEventListener('close', () => {
+    send = null;
+    setTimeout(() => {
+      createSocket();
+    }, 1000);
+  });
+
+  // Listen for messages
+  socket.addEventListener('message', (event) => {
+    const m = JSON.parse(event.data);
+    if (m.kind === 'auth-result') {
+      connecting = false;
+      if (m.authenticated) {
+        send = (msg) => socket.send(JSON.stringify(msg));
+        for (const [id, subscription] of subscriptions) {
+          socket.send(
+            JSON.stringify({
+              kind: 'subscribe',
+              id,
+              moduleID: subscription.moduleID,
+              exportName: subscription.exportName,
+              etag: subscription.etag,
+            }),
+          );
+        }
+        for (const [id, request] of [...pendingRequests]) {
+          inFlightRequests.set(id, request);
+          pendingRequests.delete(id);
+          socket.send(
+            JSON.stringify({
+              kind: 'method-call',
+              id,
+              moduleID: request.moduleID,
+              exportName: request.exportName,
+              args: request.args,
+            }),
+          );
+        }
+      } else {
+        connect();
+      }
+      return;
+    }
+
+    if (m.kind === 'authentication-required') {
+      const req = inFlightRequests.get(m.id);
+      if (req) {
+        pendingRequests.set(m.id, req);
+      }
+      connect();
+    }
+
+    if (m.kind === 'observable') {
+      const subscription = subscriptions.get(m.id);
+      subscription.etag = m.etag;
+      subscription.onUpdate(m.value);
+      return;
+    }
+
+    if (m.kind === 'method-result') {
+      const req = inFlightRequests.get(m.id);
+      if (req) {
+        req.resolve(m.result);
+      }
+      return;
+    }
+
+    if (m.kind === 'error') {
+      const err = new Error(m.message);
+      err.code = m.code;
+      const req = inFlightRequests.get(m.id);
+      if (req) {
+        req.reject(err);
+      } else {
+        setTimeout(() => {
+          throw err;
+        }, 0);
+      }
+      return;
+    }
+  });
+}
+createSocket();
 
 export async function callmethod(request) {
   const response = await fetch('/_api', {
@@ -50,13 +156,30 @@ export async function callmethod(request) {
   }
 }
 
-export function asyncMethod(moduleID, methodName) {
+export function asyncMethod(moduleID, exportName) {
   return async (...args) => {
-    return await callmethod({
-      type: 'method-call',
-      moduleID,
-      methodName,
-      args,
+    return new Promise((resolve, reject) => {
+      const id = nextMessageID++;
+      const request = {
+        type: 'method-call',
+        moduleID,
+        exportName,
+        args,
+        resolve,
+        reject,
+      };
+      if (send) {
+        inFlightRequests.set(id, request);
+        send({
+          type: 'method-call',
+          id,
+          moduleID,
+          exportName,
+          args,
+        });
+      } else {
+        pendingRequests.set(id, request);
+      }
     });
   };
 }
@@ -69,40 +192,22 @@ export function observableState(
 ) {
   const subscribers = new Set();
   let value = initialValue;
-  let etag = initialEtag;
-  function poll() {
-    callmethod({
-      type: 'long-poll',
-      moduleID,
-      exportName,
-      timeout: 30_000,
-      etag,
-    })
-      .then((result) => {
-        if (result.etag !== etag) {
-          etag = result.etag;
-          value = result.value;
-          for (const fn of subscribers) {
-            fn(value);
-          }
-        }
-      })
-      .then(
-        () => {
-          poll();
-        },
-        (err) => {
-          console.error(err);
-          console.error('Retrying in ~5 seconds');
-          setTimeout(() => poll(), 4500 + Math.floor(Math.random() * 1000));
-        },
-      );
-  }
-  poll();
+  subscriptions.set(nextMessageID++, {
+    moduleID,
+    exportName,
+    etag: initialEtag,
+    onUpdate: (newValue) => {
+      value = newValue;
+      for (const s of subscribers) {
+        s(newValue);
+      }
+    },
+  });
   return {
     getValue: () => value,
     subscribe: (fn) => {
       subscribers.add(fn);
+      return () => subscribers.delete(fn);
     },
   };
 }

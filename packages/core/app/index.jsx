@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import App from '@graphical-scripts/app';
 import DarkModeSelector from '@graphical-scripts/dark-mode-selector';
 import {bw, setup} from 'beamwind';
-import {callmethod} from './api-client';
 
 setup({
   darkMode: 'class',
@@ -18,7 +17,3 @@ ReactDOM.render(
   </div>,
   document.getElementById('root'),
 );
-
-callmethod({type: 'frontend-loaded'}).catch((ex) => {
-  console.error(ex);
-});

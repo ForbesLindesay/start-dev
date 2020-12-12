@@ -93,7 +93,6 @@ export default async function getPackageExports(
           },
         );
       });
-      normalizedExports.push(e);
       // TODO: handle widcards??
       // task((cb) => {
       //   const exportName = e.exportName.split('*');
@@ -206,7 +205,7 @@ export default async function getPackageExports(
                 : [...parts, exportName.substr('./'.length)].join('/'),
             resolvedPath: join(resolvedPackageDirectory, exportPathString),
           });
-          return;
+          break;
         }
       }
       cb();

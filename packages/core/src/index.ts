@@ -8,7 +8,7 @@ import {getType} from 'mime';
 import bundleDependency from '@graphical-scripts/bundle';
 import rewriteImports from '@graphical-scripts/rewrite-imports';
 import getRpcClient from './rpc-client';
-import handleRequest from './handleRequest';
+import handleRequest, {createWebsocketServer} from './handleRequest';
 import findPackageLocations, {
   PackageLocation,
 } from '@graphical-scripts/find-package-locations';
@@ -99,23 +99,45 @@ async function getPackageLocationCached(
   return (await packageLocationsPromise).get(id);
 }
 
+function warnTimeout<T>(p: Promise<T>, time: number, message: string) {
+  const t = setTimeout(() => {
+    console.warn(message);
+  }, time);
+  p.then(
+    () => clearTimeout(t),
+    () => clearTimeout(t),
+  );
+  return p;
+}
 async function bundlePackage(
   packageID: string,
 ): Promise<{bundledDirectory: string} | null> {
-  const packageDirectory = await getPackageLocationCached(packageID);
+  const packageDirectory = await warnTimeout(
+    getPackageLocationCached(packageID),
+    500,
+    `getPackageLocationCached(${packageID}) has taken over 500ms!`,
+  );
   if (!packageDirectory) {
     return null;
   }
 
   const inputs: {[key: string]: string} = {};
-  for (const e of await getPackageExportsCached(
-    packageDirectory.resolvedPackageDirectory,
-    packageID,
+  for (const e of await warnTimeout(
+    getPackageExportsCached(
+      packageDirectory.resolvedPackageDirectory,
+      packageID,
+    ),
+    500,
+    `getPackageExportsCached(${packageID}) has taken over 500ms!`,
   )) {
     inputs[`${e.exportName.replace(/\.js$/, '') || 'index'}`] = e.resolvedPath;
   }
 
-  await bundleDependency(inputs, join(CACHE_DIR, packageID));
+  await warnTimeout(
+    bundleDependency(inputs, join(CACHE_DIR, packageID)),
+    5_000,
+    `bundleDependency(${packageID}) has taken over 5 seconds!`,
+  );
 
   return {bundledDirectory: join(CACHE_DIR, packageID)};
 }
@@ -129,6 +151,20 @@ async function bundlePackageCached(packageID: string) {
   if (cached) return await cached;
   const fresh = bundlePackage(packageID);
   bundledPackagesCache.set(packageID, fresh);
+  Promise.race([
+    fresh.then(() => true),
+    new Promise<false>((r) => setTimeout(() => r(false), 4000)),
+  ])
+    .then((result) => {
+      if (!result) {
+        console.warn(
+          `${packageID} has still not fnished bundling after 4 seconds`,
+        );
+      }
+    })
+    .catch(() => {
+      // this error is reported elsewhere
+    });
   return await fresh;
 }
 
@@ -138,30 +174,34 @@ async function bundlePackageCached(packageID: string) {
 // GET /frame/* => get modules from the pre-provided frame
 // GET /packages/* => get packages
 // GET /dependencies/* => get package dependencies
-createServer(async (req, res) => {
-  if (!req.url?.endsWith('.map')) {
-    const originalEnd = (res as any).end;
-    const start = Date.now();
-    res.end = (...args: any[]) => {
-      const time = Date.now() - start;
-      console.info(
-        `${
-          res.statusCode === 304
-            ? chalk.green('304')
-            : res.statusCode >= 400
-            ? chalk.red(`${res.statusCode}`)
-            : chalk.blue(`${res.statusCode}`)
-        } ${req.method} ${req.url} in ${
-          time < 10
-            ? chalk.green(`${time}ms`)
-            : time < 100
-            ? chalk.yellow(`${time}ms`)
-            : chalk.red(`${time}ms`)
-        }`,
-      );
-      return originalEnd.call(res, ...args);
-    };
+const server = createServer(async (req, res) => {
+  // if (!req.url?.endsWith('.map')) {
+  console.log(chalk.gray(`${req.method} ${req.url}`));
+  if (req.url === '/packages/scheduler@0.20.1/tracing.js.map') {
+    debugger;
   }
+  const originalEnd = (res as any).end;
+  const start = Date.now();
+  res.end = (...args: any[]) => {
+    const time = Date.now() - start;
+    console.info(
+      `${
+        res.statusCode === 304
+          ? chalk.green('304')
+          : res.statusCode >= 400
+          ? chalk.red(`${res.statusCode}`)
+          : chalk.blue(`${res.statusCode}`)
+      } ${req.method} ${req.url} in ${
+        time < 10
+          ? chalk.green(`${time}ms`)
+          : time < 100
+          ? chalk.yellow(`${time}ms`)
+          : chalk.red(`${time}ms`)
+      }`,
+    );
+    return originalEnd.call(res, ...args);
+  };
+  // }
   try {
     if (req.url === '/_csrf') {
       if (!req.headers.referer?.startsWith('http://localhost:3001/')) {
@@ -408,7 +448,9 @@ createServer(async (req, res) => {
     res.statusCode = 500;
     res.end('Internal sever error');
   }
-}).listen(3001);
+});
+createWebsocketServer(server, CSRF_TOKEN);
+server.listen(3001);
 
 function handledUsingCache(
   etag: string,
