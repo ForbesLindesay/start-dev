@@ -152,11 +152,16 @@ export default async function getPackageExports(
     function onExports(
       resolvedPackageDirectory: string,
       parts: string[],
-      exports: {[key: string]: string | {[key: string]: string}},
+      exports: {
+        [key: string]:
+          | string
+          | {[key: string]: string}
+          | (string | {[key: string]: string})[];
+      },
       cb: (err?: Error) => void,
     ) {
       const pkgFileName = join(resolvedPackageDirectory, 'package.json');
-      for (const [exportName, exportPath] of Object.entries(exports)) {
+      for (const [exportName, $exportPathArray] of Object.entries(exports)) {
         if (exportName === './') {
           // you need to use `.` for the default export, and we don't support using "./": "./" to expose everything yet
           continue;
@@ -169,40 +174,40 @@ export default async function getPackageExports(
           );
           return;
         }
-        let exportPathString = exportPath;
-        if (typeof exportPathString !== 'string') {
-          const matchingCondition = Object.entries(
-            exportPathString,
-          ).find(([key]) => options.allowedExportKeys.includes(key));
-          if (matchingCondition === undefined) {
-            cb(
-              new Error(
-                `${pkgFileName} has no valid "exports", tried: ${JSON.stringify(
-                  options.allowedExportKeys,
-                )}`,
-              ),
-            );
-            return;
+
+        const exportPathArray = Array.isArray($exportPathArray)
+          ? $exportPathArray
+          : [$exportPathArray];
+        for (const exportPath of exportPathArray) {
+          let exportPathString = exportPath;
+          if (typeof exportPathString !== 'string') {
+            const matchingCondition = Object.entries(
+              exportPathString,
+            ).find(([key]) => options.allowedExportKeys.includes(key));
+            if (matchingCondition === undefined) {
+              continue;
+            }
+            const [key, value] = matchingCondition;
+            if (typeof value !== 'string') {
+              cb(
+                new Error(
+                  `${pkgFileName} has "exports.${key}", but it is not a string`,
+                ),
+              );
+              return;
+            } else {
+              exportPathString = value;
+            }
           }
-          const [key, value] = matchingCondition;
-          if (typeof value !== 'string') {
-            cb(
-              new Error(
-                `${pkgFileName} has "exports.${key}", but it is not a string`,
-              ),
-            );
-            return;
-          } else {
-            exportPathString = value;
-          }
+          onExport({
+            exportName:
+              exportName === '.' || exportName === './'
+                ? parts.join('/')
+                : [...parts, exportName.substr('./'.length)].join('/'),
+            resolvedPath: join(resolvedPackageDirectory, exportPathString),
+          });
+          return;
         }
-        onExport({
-          exportName:
-            exportName === '.' || exportName === './'
-              ? parts.join('/')
-              : [...parts, exportName.substr('./'.length)].join('/'),
-          resolvedPath: join(resolvedPackageDirectory, exportPathString),
-        });
       }
       cb();
     }

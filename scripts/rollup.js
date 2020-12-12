@@ -68,8 +68,9 @@ async function run() {
           // whether to prefer built-in modules (e.g. `fs`, `path`) or local ones with the same names
           preferBuiltins: true,
           dedupe: [],
-          exportConditions: ['module', 'require', 'default', 'node'],
+          exportConditions: ['import', 'module', 'require', 'default', 'node'],
         }),
+        // TODO: update pluginCommonJS to support: {".": [{"module": "..."}, "./default.js"]}
         pluginCommonJS({
           extensions: ['.js', '.cjs'],
           // esmExternals: externalPackageEsm,
@@ -83,7 +84,9 @@ async function run() {
           ? `${loc.file}:${loc.line}:${loc.column} ${message}`
           : message;
         console.error(logMessage);
-        process.exitCode = 1;
+        if (warning.code !== 'CIRCULAR_DEPENDENCY') {
+          process.exitCode = 1;
+        }
       },
     });
   } catch (ex) {

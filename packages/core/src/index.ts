@@ -16,6 +16,7 @@ import getPackageExports, {
   NormalizedExport,
 } from '@graphical-scripts/get-package-exports';
 import chalk from 'chalk';
+// import WebSocket from 'ws';
 
 // we intentionally wait until after we've loaded all the internal modules before registering sucrase to
 // handle any server side modules
