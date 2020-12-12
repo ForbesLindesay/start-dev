@@ -496,7 +496,7 @@ async function servePath(
           );
           let relativePath = relative(FRAME_DIRECTORY, absolutePath);
           if (relativePath[0] !== '.') {
-            return `/${relativePath.replace(/\.(jsx|ts|tsx)$/, '.js')}`;
+            return `/frame/${relativePath.replace(/\.(jsx|ts|tsx)$/, '.js')}`;
           }
           relativePath = relative(APP_DIRECTORY, absolutePath);
           if (relativePath[0] !== '.') {
