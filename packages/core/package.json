@@ -24,12 +24,16 @@
     "@graphical-scripts/get-package-exports": "^0.0.0",
     "@graphical-scripts/rewrite-imports": "^0.0.0",
     "@graphical-scripts/websocket-rpc": "^0.0.0",
+    "@types/find-cache-dir": "^3.2.0",
     "beamwind": "^2.0.2",
     "chalk": "^4.1.0",
-    "mime": "^2.4.6"
+    "find-cache-dir": "^3.3.1",
+    "mime": "^2.4.6",
+    "rimraf": "^3.0.2"
   },
   "devDependencies": {
     "@types/mime": "^2.0.3",
+    "@types/rimraf": "^3.0.0",
     "autoprefixer": "^10.0.2",
     "copy-dir": "^1.3.0",
     "rimraf": "^3.0.2"
