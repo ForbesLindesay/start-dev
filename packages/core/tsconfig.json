@@ -12,7 +12,9 @@
   "references": [
     {"path": "../bundle"},
     {"path": "../dark-mode-selector"},
+    {"path": "../find-package-locations"},
+    {"path": "../get-package-exports"},
     {"path": "../rewrite-imports"},
-    {"path": "../websocket-rpc"}
-  ]
+    {"path": "../websocket-rpc"},
+  ],
 }

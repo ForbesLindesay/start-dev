@@ -10,5 +10,10 @@
     "lib": ["DOM", "ES2020"],
     "jsx": "react"
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [
+    {"path": "../rollup-plugin-native-fetch"},
+    {"path": "../rollup-plugin-strip-source-mapping"},
+    {"path": "../rollup-plugin-wrap-commonjs-entrypoints"},
+  ],
 }
