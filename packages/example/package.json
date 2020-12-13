@@ -2,15 +2,16 @@
   "name": "@start-dev/example",
   "version": "0.0.0",
   "private": true,
+  "@rollingversions/ignore": true,
   "dependencies": {
-    "@start-dev/core": "0.0.0",
     "@start-dev/state": "0.0.0",
     "@types/react": "^17.0.0",
     "beamwind": "^2.0.2",
-    "react": "^17.0.1"
+    "react": "^17.0.1",
+    "start-dev": "^0.0.0"
   },
   "scripts": {
-    "start": "graphical scripts index.tsx"
+    "start": "cd scripts && start-dev index.tsx"
   },
   "devDependencies": {},
   "license": "MIT"

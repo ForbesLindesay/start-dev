@@ -22,7 +22,7 @@ const CSRF_TOKEN = randomBytes(128).toString('base64');
 
 const FRAME_DIRECTORY = resolve(`${__dirname}/../app`);
 const htmlFileName = join(FRAME_DIRECTORY, 'index.html');
-interface Options {
+export interface StartDevOptions {
   appDirectory: string;
   appEntrypoint?: string;
   portNumber: number;
@@ -32,19 +32,13 @@ interface Options {
   };
 }
 
-createGraphicalServer({
-  appDirectory: resolve(`${__dirname}/../../example/scripts`),
-  appEntrypoint: 'index.js',
-  portNumber: 3001,
-});
-
-export default function createGraphicalServer({
+export default function createDevServer({
   appDirectory,
   appEntrypoint = 'index.js',
   cacheDirectory: $cacheDirectory,
   portNumber,
   packageExportsOverrides,
-}: Options) {
+}: StartDevOptions) {
   const start = Date.now();
   const fullAppEntrypointPath = resolve(appDirectory, appEntrypoint);
   const relativeAppEntrypointPath = relative(
@@ -309,6 +303,9 @@ export default function createGraphicalServer({
           res.end(await promises.readFile(path));
           return;
         }
+        res.statusCode = 404;
+        res.end('File not found');
+        return;
       }
       if (req.url!.startsWith('/frame/')) {
         if (req.url!.endsWith('.js')) {
@@ -334,6 +331,9 @@ export default function createGraphicalServer({
           res.end(await promises.readFile(path));
           return;
         }
+        res.statusCode = 404;
+        res.end('File not found');
+        return;
       }
 
       if (req.url!.startsWith('/dependencies/')) {
@@ -425,6 +425,9 @@ export default function createGraphicalServer({
         ) {
           return;
         }
+        res.statusCode = 404;
+        res.end('File not found');
+        return;
       }
 
       const path = join(FRAME_DIRECTORY, req.url!.substr(1));

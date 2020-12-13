@@ -4,13 +4,9 @@
   "description": "npm-package-template",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "bin": {
-    "graphical": "lib/cli.js"
-  },
   "files": [
     "app/",
-    "lib/",
-    "snowpack-cache/"
+    "lib/"
   ],
   "scripts": {
     "build": "yarn build:ts",

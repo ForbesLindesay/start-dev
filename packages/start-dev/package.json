@@ -2,25 +2,17 @@
   "name": "start-dev",
   "version": "0.0.0",
   "description": "A dashboard for your application builds when running in development mode",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
-  "types": "lib/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.cjs"
-    },
-    "./package.json": "./package.json"
-  },
+  "bin": "./lib/index.js",
   "files": [
     "dist/",
-    "lib/",
-    "useObservableState"
+    "lib/"
   ],
   "scripts": {
     "build": "tsc"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@start-dev/core": "^0.0.0"
+  },
   "devDependencies": {},
   "peerDependencies": {},
   "engines": {

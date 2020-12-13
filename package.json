@@ -2,6 +2,7 @@
   "name": "start-dev-workspace",
   "version": "0.0.0",
   "private": true,
+  "@rollingversions/ignore": true,
   "workspaces": [
     "packages/*"
   ],
@@ -45,8 +46,7 @@
     "lint": "tslint './src/**/*.{ts,tsx}' -t verbose -p .",
     "prettier:write": "prettier --ignore-path .gitignore --write './**/*.{md,yaml,js,jsx,ts,tsx}'",
     "prettier:check": "prettier --ignore-path .gitignore --list-different './**/*.{md,yaml,js,jsx,ts,tsx}'",
-    "test": "jest",
-    "ci:test": "jest --silent --maxWorkers=2"
+    "test": "jest"
   },
   "jest": {
     "moduleFileExtensions": [

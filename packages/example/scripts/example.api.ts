@@ -1,8 +1,9 @@
 import {promises} from 'fs';
+import {resolve} from 'path';
 import {createStateAtom} from '@start-dev/state';
 
 export async function readFile(filename: string) {
-  return promises.readFile(filename, 'utf8');
+  return promises.readFile(resolve(__dirname, '..', filename), 'utf8');
 }
 
 const [observable, setState] = createStateAtom({value: 42});
