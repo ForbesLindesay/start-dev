@@ -5,16 +5,16 @@ import {randomBytes} from 'crypto';
 import {createServer, IncomingMessage, ServerResponse} from 'http';
 import {transform} from 'sucrase';
 import {getType} from 'mime';
-import bundleDependency from '@graphical-scripts/bundle';
-import rewriteImports from '@graphical-scripts/rewrite-imports';
+import bundleDependency from '@start-dev/bundle';
+import rewriteImports from '@start-dev/rewrite-imports';
 import findPackageLocations, {
   PackageLocation,
-} from '@graphical-scripts/find-package-locations';
+} from '@start-dev/find-package-locations';
 import getPackageExports, {
   NormalizedExport,
-} from '@graphical-scripts/get-package-exports';
+} from '@start-dev/get-package-exports';
 import chalk from 'chalk';
-import createWebsocketServer from '@graphical-scripts/websocket-rpc/server';
+import createWebsocketServer from '@start-dev/websocket-rpc/server';
 import findCacheDir from 'find-cache-dir';
 import rimraf from 'rimraf';
 
@@ -47,17 +47,17 @@ export default function createGraphicalServer({
 }: Options) {
   const start = Date.now();
   const fullAppEntrypointPath = resolve(appDirectory, appEntrypoint);
-  const relativeAppEntrypointPath = relative(appDirectory, appEntrypoint);
+  const relativeAppEntrypointPath = relative(
+    appDirectory,
+    fullAppEntrypointPath,
+  );
   if (relativeAppEntrypointPath.startsWith('.')) {
     throw new Error(
       `The app entrypoint "${fullAppEntrypointPath}" must be inside the app directory, "${appDirectory}"`,
     );
   }
   const builtinDependencies: {[key: string]: string} = {
-    '@graphical-scripts/app': `/app/${relativeAppEntrypointPath.replace(
-      /\\/g,
-      '/',
-    )}`,
+    '@start-dev/app': `/app/${relativeAppEntrypointPath.replace(/\\/g, '/')}`,
   };
 
   const ORIGIN = `http://localhost:${portNumber}`;
@@ -66,11 +66,11 @@ export default function createGraphicalServer({
   const cacheDirectory =
     $cacheDirectory ??
     findCacheDir({
-      name: '@graphical-scripts/core',
+      name: 'start-dev',
       cwd: appDirectory,
       create: true,
     }) ??
-    resolve('.graphical-scripts');
+    resolve('.start-dev-cache');
 
   const APP_EXTENSIONS = [
     '',
@@ -104,7 +104,6 @@ export default function createGraphicalServer({
     [key: string]: undefined | {[key: string]: string};
   } = {
     scheduler: {'.': './', './tracing': './tracing.js'},
-    '@graphical-scripts/websocket-rpc': {'./client': './dist/client.mjs'},
     ...packageExportsOverrides,
   };
 
@@ -457,7 +456,7 @@ export default function createGraphicalServer({
   });
   server.listen(portNumber, () => {
     // Prepopulate the cache. This cache typically takes ~200ms - 300ms to build,
-    // and is by far the slowest part of the entire process of starting a graphical-scripts
+    // and is by far the slowest part of the entire process of starting a start-dev
     // app
     getPackageLocationsCached()
       .catch(() => {

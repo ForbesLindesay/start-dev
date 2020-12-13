@@ -1,5 +1,5 @@
 import {promises} from 'fs';
-import {createStateAtom} from '@graphical-scripts/state';
+import {createStateAtom} from '@start-dev/state';
 
 export async function readFile(filename: string) {
   return promises.readFile(filename, 'utf8');

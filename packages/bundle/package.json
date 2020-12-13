@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/bundle",
+  "name": "@start-dev/bundle",
   "version": "0.0.0",
   "description": "npm-package-template",
   "main": "dist/index.cjs",
@@ -29,9 +29,9 @@
     "vm2": "^3.9.2"
   },
   "devDependencies": {
-    "@graphical-scripts/rollup-plugin-native-fetch": "^0.0.0",
-    "@graphical-scripts/rollup-plugin-strip-source-mapping": "^0.0.0",
-    "@graphical-scripts/rollup-plugin-wrap-commonjs-entrypoints": "^0.0.0",
+    "@start-dev/rollup-plugin-native-fetch": "^0.0.0",
+    "@start-dev/rollup-plugin-strip-source-mapping": "^0.0.0",
+    "@start-dev/rollup-plugin-wrap-commonjs-entrypoints": "^0.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-replace": "^2.3.4"
   },

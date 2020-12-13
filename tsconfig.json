@@ -14,7 +14,6 @@
     {"path": "./packages/dark-mode-selector"},
     {"path": "./packages/find-package-locations"},
     {"path": "./packages/get-package-exports"},
-    {"path": "./packages/observable-process"},
     {"path": "./packages/rewrite-imports"},
     {"path": "./packages/rollup-plugin-native-fetch"},
     {"path": "./packages/rollup-plugin-strip-source-mapping"},

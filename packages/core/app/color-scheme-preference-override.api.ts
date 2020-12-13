@@ -1,4 +1,4 @@
-import {createStateAtom} from '@graphical-scripts/state';
+import {createStateAtom} from '@start-dev/state';
 
 const [colorSchemeOverrideOnServer, setPreferenceOverride] = createStateAtom<
   null | 'dark' | 'light'

@@ -1,4 +1,4 @@
-import useObservableState from '@graphical-scripts/state/useObservableState';
+import useObservableState from '@start-dev/state/useObservableState';
 import React from 'react';
 import {bw} from 'beamwind';
 import {readFile, observable} from './example.api';

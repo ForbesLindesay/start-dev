@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/core",
+  "name": "@start-dev/core",
   "version": "0.0.0",
   "description": "npm-package-template",
   "main": "lib/index.js",
@@ -18,12 +18,12 @@
     "start": "node lib"
   },
   "dependencies": {
-    "@graphical-scripts/bundle": "^0.0.0",
-    "@graphical-scripts/dark-mode-selector": "^0.0.0",
-    "@graphical-scripts/find-package-locations": "^0.0.0",
-    "@graphical-scripts/get-package-exports": "^0.0.0",
-    "@graphical-scripts/rewrite-imports": "^0.0.0",
-    "@graphical-scripts/websocket-rpc": "^0.0.0",
+    "@start-dev/bundle": "^0.0.0",
+    "@start-dev/dark-mode-selector": "^0.0.0",
+    "@start-dev/find-package-locations": "^0.0.0",
+    "@start-dev/get-package-exports": "^0.0.0",
+    "@start-dev/rewrite-imports": "^0.0.0",
+    "@start-dev/websocket-rpc": "^0.0.0",
     "@types/find-cache-dir": "^3.2.0",
     "beamwind": "^2.0.2",
     "chalk": "^4.1.0",

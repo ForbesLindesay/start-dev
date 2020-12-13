@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/state",
+  "name": "@start-dev/state",
   "version": "0.0.0",
   "description": "npm-package-template",
   "main": "dist/index.cjs",

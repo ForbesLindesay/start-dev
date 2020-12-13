@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/find-package-locations",
+  "name": "@start-dev/find-package-locations",
   "version": "0.0.0",
   "description": "npm-package-template",
   "main": "dist/index.cjs",

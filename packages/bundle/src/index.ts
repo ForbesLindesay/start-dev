@@ -18,9 +18,9 @@ import {
 import rollupPluginNodePolyfills from 'rollup-plugin-node-polyfills';
 import rollupPluginReplace from '@rollup/plugin-replace';
 // import util from 'util';
-import rollupPluginNativeFetch from '@graphical-scripts/rollup-plugin-native-fetch';
-import rollupPluginStripSourceMapping from '@graphical-scripts/rollup-plugin-strip-source-mapping';
-import rollupPluginWrapCommmonJsEntrypoints from '@graphical-scripts/rollup-plugin-wrap-commonjs-entrypoints';
+import rollupPluginNativeFetch from '@start-dev/rollup-plugin-native-fetch';
+import rollupPluginStripSourceMapping from '@start-dev/rollup-plugin-strip-source-mapping';
+import rollupPluginWrapCommmonJsEntrypoints from '@start-dev/rollup-plugin-wrap-commonjs-entrypoints';
 // import validatePackageName from 'validate-npm-package-name';
 // import {rollupPluginCatchFetch} from './rollup-plugins/rollup-plugin-catch-fetch';
 // import {rollupPluginCatchUnresolved} from './rollup-plugins/rollup-plugin-catch-unresolved';

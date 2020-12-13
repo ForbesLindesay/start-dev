@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/rollup-plugin-native-fetch",
+  "name": "@start-dev/rollup-plugin-native-fetch",
   "version": "0.0.0",
   "description": "Replace imports of node-fetch and whatwg-fetch with the native browser version",
   "main": "dist/index.cjs",

@@ -1,7 +1,7 @@
 {
-  "name": "@start-dev/rewrite-imports",
+  "name": "start-dev",
   "version": "0.0.0",
-  "description": "Rewrite import paths in ESModules without a full parser like babel",
+  "description": "A dashboard for your application builds when running in development mode",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "lib/index.d.ts",
@@ -14,16 +14,15 @@
   },
   "files": [
     "dist/",
-    "lib/"
+    "lib/",
+    "useObservableState"
   ],
   "scripts": {
     "build": "tsc"
   },
   "dependencies": {},
-  "devDependencies": {
-    "@types/es-module-lexer": "^0.3.0",
-    "es-module-lexer": "^0.3.26"
-  },
+  "devDependencies": {},
+  "peerDependencies": {},
   "engines": {
     "node": ">=12.0.0"
   },

@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/dark-mode-selector",
+  "name": "@start-dev/dark-mode-selector",
   "version": "0.0.0",
   "description": "npm-package-template",
   "main": "dist/index.cjs",

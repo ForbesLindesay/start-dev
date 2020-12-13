@@ -1,7 +1,7 @@
 import React from 'react';
 import {bw} from 'beamwind';
-import {createStateAtom} from '@graphical-scripts/state';
-import useObservableState from '@graphical-scripts/state/useObservableState';
+import {createStateAtom} from '@start-dev/state';
+import useObservableState from '@start-dev/state/useObservableState';
 
 function getWindowColorScheme(): 'dark' | 'light' | null {
   return window.matchMedia

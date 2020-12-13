@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/rollup-plugin-strip-source-mapping",
+  "name": "@start-dev/rollup-plugin-strip-source-mapping",
   "version": "0.0.0",
   "description": "Remove source maps from files before they are processed by rollup",
   "main": "dist/index.cjs",

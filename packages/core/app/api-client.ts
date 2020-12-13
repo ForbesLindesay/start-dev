@@ -1,4 +1,4 @@
-import Client from '@graphical-scripts/websocket-rpc/client';
+import Client from '@start-dev/websocket-rpc/client';
 
 async function getCsrfToken() {
   const response = await fetch('/_csrf', {method: 'POST'});

@@ -4,7 +4,7 @@ import DarkModeSelector, {
   colorScheme,
   colorSchemeOverride,
   setColorSchemeOverride,
-} from '@graphical-scripts/dark-mode-selector';
+} from '@start-dev/dark-mode-selector';
 import {bw, setup} from 'beamwind';
 import {
   colorSchemeOverrideOnServer,

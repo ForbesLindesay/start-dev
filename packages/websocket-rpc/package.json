@@ -1,5 +1,5 @@
 {
-  "name": "@graphical-scripts/websocket-rpc",
+  "name": "@start-dev/websocket-rpc",
   "version": "0.0.0",
   "description": "npm-package-template",
   "exports": {
@@ -8,6 +8,7 @@
       "default": "./dist/client.cjs"
     },
     "./server": {
+      "browser": "./dist/server.browser.mjs",
       "import": "./dist/server.mjs",
       "default": "./dist/server.cjs"
     },
@@ -24,7 +25,9 @@
     "sucrase": "^3.16.0",
     "ws": "^7.4.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/ws": "^7.4.0"
+  },
   "peerDependencies": {
     "react": "*"
   },
