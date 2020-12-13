@@ -1,0 +1,19 @@
+{
+  "extends": "@forbeslindesay/tsconfig",
+  "compilerOptions": {
+    "outDir": "lib",
+    "incremental": true,
+    "composite": true,
+    "rootDir": "src",
+    "module": "ES2020",
+    "tsBuildInfoFile": "lib/.tsbuildinfo",
+    "lib": ["DOM", "ES2020"],
+    "jsx": "react"
+  },
+  "include": ["src"],
+  "references": [
+    {"path": "../rollup-plugin-native-fetch"},
+    {"path": "../rollup-plugin-strip-source-mapping"},
+    {"path": "../rollup-plugin-wrap-commonjs-entrypoints"},
+  ],
+}

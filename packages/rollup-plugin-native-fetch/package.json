@@ -1,0 +1,33 @@
+{
+  "name": "@start-dev/rollup-plugin-native-fetch",
+  "version": "0.0.0",
+  "description": "Replace imports of node-fetch and whatwg-fetch with the native browser version",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/",
+    "lib/"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "rollup": "^2.34.2"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}

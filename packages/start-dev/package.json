@@ -1,0 +1,22 @@
+{
+  "name": "start-dev",
+  "version": "0.0.0",
+  "description": "A dashboard for your application builds when running in development mode",
+  "bin": "./lib/index.js",
+  "files": [
+    "dist/",
+    "lib/"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@start-dev/core": "^0.0.0"
+  },
+  "devDependencies": {},
+  "peerDependencies": {},
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "license": "MIT"
+}

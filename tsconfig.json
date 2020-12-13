@@ -4,7 +4,21 @@
     "outDir": "lib",
     "incremental": true,
     "rootDir": "src",
-    "tsBuildInfoFile": "lib/.tsbuildinfo"
+    "tsBuildInfoFile": "lib/.tsbuildinfo",
+    "lib": ["DOM", "ES2020"]
   },
-  "include": ["src"]
+  "files": [],
+  "references": [
+    {"path": "./packages/bundle"},
+    {"path": "./packages/core"},
+    {"path": "./packages/dark-mode-selector"},
+    {"path": "./packages/find-package-locations"},
+    {"path": "./packages/get-package-exports"},
+    {"path": "./packages/rewrite-imports"},
+    {"path": "./packages/rollup-plugin-native-fetch"},
+    {"path": "./packages/rollup-plugin-strip-source-mapping"},
+    {"path": "./packages/start-dev"},
+    {"path": "./packages/state"},
+    {"path": "./packages/websocket-rpc"},
+  ]
 }

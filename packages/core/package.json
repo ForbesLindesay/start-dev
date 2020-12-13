@@ -1,0 +1,44 @@
+{
+  "name": "@start-dev/core",
+  "version": "0.0.0",
+  "description": "npm-package-template",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "app/",
+    "lib/"
+  ],
+  "scripts": {
+    "build": "yarn build:ts",
+    "build:ts": "tsc",
+    "start": "node lib"
+  },
+  "dependencies": {
+    "@start-dev/bundle": "^0.0.0",
+    "@start-dev/dark-mode-selector": "^0.0.0",
+    "@start-dev/find-package-locations": "^0.0.0",
+    "@start-dev/get-package-exports": "^0.0.0",
+    "@start-dev/rewrite-imports": "^0.0.0",
+    "@start-dev/websocket-rpc": "^0.0.0",
+    "@types/find-cache-dir": "^3.2.0",
+    "beamwind": "^2.0.2",
+    "chalk": "^4.1.0",
+    "find-cache-dir": "^3.3.1",
+    "mime": "^2.4.6",
+    "rimraf": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/mime": "^2.0.3",
+    "@types/rimraf": "^3.0.0",
+    "autoprefixer": "^10.0.2",
+    "copy-dir": "^1.3.0",
+    "rimraf": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}

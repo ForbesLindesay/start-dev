@@ -1,0 +1,41 @@
+{
+  "name": "@start-dev/websocket-rpc",
+  "version": "0.0.0",
+  "description": "npm-package-template",
+  "exports": {
+    "./client": {
+      "import": "./dist/client.mjs",
+      "default": "./dist/client.cjs"
+    },
+    "./server": {
+      "browser": "./dist/server.browser.mjs",
+      "import": "./dist/server.mjs",
+      "default": "./dist/server.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/",
+    "lib/"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "sucrase": "^3.16.0",
+    "ws": "^7.4.1"
+  },
+  "devDependencies": {
+    "@types/ws": "^7.4.0"
+  },
+  "peerDependencies": {
+    "react": "*"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}

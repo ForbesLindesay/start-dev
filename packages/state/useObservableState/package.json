@@ -1,0 +1,5 @@
+{
+  "main": "../dist/useObservableState.cjs",
+  "module": "../dist/useObservableState.mjs",
+  "types": "../lib/useObservableState.d.ts"
+}
