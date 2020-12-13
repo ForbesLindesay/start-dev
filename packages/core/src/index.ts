@@ -20,14 +20,11 @@ import rimraf from 'rimraf';
 
 const CSRF_TOKEN = randomBytes(128).toString('base64');
 
-const builtinDependencies: {[key: string]: string} = {
-  '@graphical-scripts/app': '/app/index.js',
-};
-
 const FRAME_DIRECTORY = resolve(`${__dirname}/../app`);
 const htmlFileName = join(FRAME_DIRECTORY, 'index.html');
 interface Options {
   appDirectory: string;
+  appEntrypoint?: string;
   portNumber: number;
   cacheDirectory?: string;
   packageExportsOverrides?: {
@@ -37,16 +34,32 @@ interface Options {
 
 createGraphicalServer({
   appDirectory: resolve(`${__dirname}/../../example/scripts`),
+  appEntrypoint: 'index.js',
   portNumber: 3001,
 });
 
 export default function createGraphicalServer({
   appDirectory,
+  appEntrypoint = 'index.js',
   cacheDirectory: $cacheDirectory,
   portNumber,
   packageExportsOverrides,
 }: Options) {
   const start = Date.now();
+  const fullAppEntrypointPath = resolve(appDirectory, appEntrypoint);
+  const relativeAppEntrypointPath = relative(appDirectory, appEntrypoint);
+  if (relativeAppEntrypointPath.startsWith('.')) {
+    throw new Error(
+      `The app entrypoint "${fullAppEntrypointPath}" must be inside the app directory, "${appDirectory}"`,
+    );
+  }
+  const builtinDependencies: {[key: string]: string} = {
+    '@graphical-scripts/app': `/app/${relativeAppEntrypointPath.replace(
+      /\\/g,
+      '/',
+    )}`,
+  };
+
   const ORIGIN = `http://localhost:${portNumber}`;
   const DISABLE_CACHE = process.env.DISABLE_CACHE === 'true';
 
@@ -273,11 +286,6 @@ export default function createGraphicalServer({
       return;
     }
     try {
-      if (req.method !== 'GET' && req.headers['x-csrf-token'] !== CSRF_TOKEN) {
-        res.statusCode = 403;
-        res.end(`Missing or invalid CSRF token`);
-        return;
-      }
       if (req.url!.startsWith('/app/')) {
         if (req.url!.endsWith('.js')) {
           for (const ext of ['.js', '.jsx', '.ts', '.tsx']) {
@@ -524,11 +532,15 @@ export default function createGraphicalServer({
             );
             let relativePath = relative(FRAME_DIRECTORY, absolutePath);
             if (relativePath[0] !== '.') {
-              return `/frame/${relativePath.replace(/\.(jsx|ts|tsx)$/, '.js')}`;
+              return `/frame/${relativePath
+                .replace(/\.(jsx|ts|tsx)$/, '.js')
+                .replace(/\\/g, '/')}`;
             }
             relativePath = relative(appDirectory, absolutePath);
             if (relativePath[0] !== '.') {
-              return `/app/${relativePath.replace(/\.(jsx|ts|tsx)$/, '.js')}`;
+              return `/app/${relativePath
+                .replace(/\.(jsx|ts|tsx)$/, '.js')
+                .replace(/\\/g, '/')}`;
             }
             if (relativePath[0] === '.') {
               throw new Error(
@@ -576,7 +588,10 @@ export default function createGraphicalServer({
                 absolutePath,
               );
               if (relativePath[0] !== '.') {
-                return `/packages/${file.packageID}/${relativePath}`;
+                return `/packages/${file.packageID}/${relativePath.replace(
+                  /\\/g,
+                  '/',
+                )}`;
               }
               if (relativePath[0] === '.') {
                 throw new Error(
